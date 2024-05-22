@@ -4,26 +4,30 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 
   class WC_SellerLedger_Settings {
 
-    public static $id = 'sellerledger-integration';
+    public static $tab_id = 'sellerledger-integration';
 
     public static function init() {
       add_filter( 'woocommerce_settings_tabs_array', array( __CLASS__, 'add_settings_tab' ), 50 );
-      add_action( 'woocommerce_sections_' . self::$id, array( __CLASS__, 'output_sections' ) );
-      add_action( 'woocommerce_settings_' . self::$id, array( __CLASS__, 'output_settings_page' ) );
-      add_action( 'woocommerce_settings_save_' . self::$id, array( __CLASS__, 'save' ) );
+      add_action( 'woocommerce_sections_' . self::$tab_id, array( __CLASS__, 'output_sections' ) );
+      add_action( 'woocommerce_settings_' . self::$tab_id, array( __CLASS__, 'output_settings_page' ) );
+      add_action( 'woocommerce_settings_save_' . self::$tab_id, array( __CLASS__, 'save' ) );
     }
 
     public static function get_stored_settings_identifier() {
-      return 'woocommerce_' . self::$id . '_settings';
+      return 'woocommerce_' . self::$tab_id . '_settings';
+    }
+
+    public static function all() {
+      return WC_Admin_Settings::get_option( self::get_stored_settings_identifier() );
     }
 
     public static function add_settings_tab( $settings_tabs ) {
-      $settings_tabs[ self::$id ] = __( 'Seller Ledger', 'sellerledger' );
+      $settings_tabs[ self::$tab_id ] = __( 'Seller Ledger', 'sellerledger' );
       return $settings_tabs;
     }
 
     public static function save() {
-      $settings = self::get_settings();
+      $settings = self::get_settings_attributes();
       WC_Admin_Settings::save_fields( $settings );
     }
 
@@ -41,12 +45,12 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
       $array_keys = array_keys( $sections );
 
       foreach ( $sections as $id => $label ) {
-        $section_relative_url = 'admin.php?page=wc-settings&tab=' . self::$id . '&section=' . sanitize_title( $id );
-        $section_html_string  = '<li><a href="';
-        $section_html_string .= admin_url( $section_relative_url );
-        $section_html_string .= '" class="' . ( $current_section === $id ? 'current' : '' ) . '">';
-        $section_html_string .= $label . '</a> ' . ( end( $array_keys ) === $id ? '' : '|' ) . ' </li>';
-        echo wp_kses_post( $section_html_string );
+        $section_relative_url = 'admin.php?page=wc-settings&tab=' . self::$tab_id . '&section=' . sanitize_title( $id );
+        $section_html  = '<li><a href="';
+        $section_html .= admin_url( $section_relative_url );
+        $section_html .= '" class="' . ( $current_section === $id ? 'current' : '' ) . '">';
+        $section_html .= $label . '</a> ' . ( end( $array_keys ) === $id ? '' : '|' ) . ' </li>';
+        echo wp_kses_post( $section_html );
       }
 
       echo '</ul><br class="clear" />';
@@ -57,42 +61,25 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
         ''                     => __( 'Settings', 'woocommerce' ),
         'transaction_backfill' => __( 'Transaction Backfill', 'wc-sellerledger' ),
       );
-      return apply_filters( 'woocommerce_get_sections_' . self::$id, $sections );
+      return $sections;
     }
 
-    public static function get_connect_to_sellerledger_setting() {
+    public static function get_title( $title, $description = '' ) {
       return array(
-      'title'   => 'Seller Ledger API Token',
-      'type'    => 'text',
-      'desc'    => '<p class="hidden sl-api-token-title"><a href="' . WC_SellerLedger_Integration::$app_uri . 'account#api-access" target="_blank">' . __( 'Get API token', 'wc-sellerledger' ) . '<a></p>',
-      'default' => '',
-      'class'   => '',
-      'id'      => 'woocommerce_sellerledger-integration_settings[api_token]',
-      );
-    }
-
-    public static function get_sync_button_setting() {
-      return array(
-        'title' => '',
+        'title' => __( $title, 'wc-sellerledger' ),
         'type'  => 'title',
-        'desc'  => '<button id="sellerledger-sync" name="sellerledger-sync" class="button-primary" type="submit" value="Sync Transactions">' . __( 'Sync Transactions To Seller Ledger', 'wc-sellerledger' ) . '</button>'
+        'desc'  => __( $description, 'wc-sellerledger' ),
       );
     }
 
-    public static function get_title_settings() {
+    public static function get_api_token_field() {
       return array(
-        array(
-          'title' => __( 'Seller Ledger', 'wc-sellerledger' ),
-          'type'  => 'title',
-          'desc'  => __( 'Automated bookkeeping software for eCommerce sellers', 'wc-sellerledger' ),
-        ),
-        self::get_section_split(),
-        array(
-          'title' => __( 'Step 1: Activate your Seller Ledger WooCommerce Plugin', 'wc-sellerledger' ),
-          'type'  => 'title',
-          'desc'  => __( 'Enter your API token to activate the plugin', 'wc-sellerledger' ),
-        ),
-        self::get_section_split()
+        'title'   => 'API Token',
+        'type'    => 'text',
+        'desc'    => '',
+        'default' => '',
+        'class'   => '',
+        'id'      => 'woocommerce_sellerledger-integration_settings[api_token]',
       );
     }
 
@@ -102,30 +89,26 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
       );
     }
 
-    public static function get_stored_settings() {
-      return WC_Admin_Settings::get_option( self::get_stored_settings_identifier() );
-    }
-
-    public static function get_settings() {
+    public static function get_settings_attributes() {
       $settings = array();
+      $token = new WC_SellerLedger_Token();
       $connection = new WC_SellerLedger_Connection();
-      $settings = self::get_title_settings();
       global $hide_save_button;
 
-      array_push( $settings, self::get_connect_to_sellerledger_setting() );
-
-      if ( $connection->validToken() ) {
-        $hide_save_button = true;
+      if ( $token->invalid() ) {
+        array_push( $settings, self::get_title( 'Seller Ledger', 'Please enter your API token to active the Seller Ledger plugin.' ) );
         array_push( $settings, self::get_section_split() );
-        array_push( $settings, self::get_sync_button_setting() );
+        array_push( $settings, self::get_api_token_field() );
+      } elseif ( $connection->invalid() ) {
+        array_push( $settings, self::get_title( 'Seller Ledger', 'You have entered a token that appears to be invalid. Please verify it is correct.' ) );
+        array_push( $settings, self::get_section_split() );
+        array_push( $settings, self::get_api_token_field() );
+      } else {
+        $hide_save_button = true;
+        array_push( $settings, self::get_title( 'Seller Ledger', 'Congrats! Your are connected to Seller Ledger.' ) );
       }
 
       return $settings;
-    }
-
-    public static function get_setting( $key ) {
-      $settings = self::get_stored_settings();
-      return $settings[ $key ];
     }
 
     public static function output_settings_page() {
@@ -133,7 +116,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
       global $hide_save_button;
 
       if ( '' === $current_section ) {
-        $settings = self::get_settings();
+        $settings = self::get_settings_attributes();
         WC_Admin_Settings::output_fields( $settings );
         wp_nonce_field( 'sellerledger_settings' );
       } elseif ( 'transaction_backfill' === $current_section ) {

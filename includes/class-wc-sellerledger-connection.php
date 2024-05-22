@@ -4,12 +4,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class WC_SellerLedger_Connection {
-  public function validToken() {
-    $api_token = WC_SellerLedger_Settings::get_setting( 'api_token' );
-    if ( $api_token != null ) {
-      return true;
-    } else {
-      return false;
-    }
+  public function invalid() {
+    $result = $this->verify();
+    return ($this->verify() == false);
+  }
+
+  private function verify() {
+    $request = new WC_SellerLedger_API_Request();
+    $response = $request->get("categories");
+    return $response->success();
   }
 }
