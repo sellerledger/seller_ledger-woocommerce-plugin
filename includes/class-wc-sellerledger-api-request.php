@@ -15,8 +15,8 @@ class WC_SellerLedger_API_Request {
 
   public static $base_url = 'https://api.sellerledger.com/v1/';
 
-  public function __construct($content_type = 'application/json' ) {
-    $this->set_api_token( SellerLedger()->settings()['api_token'] );
+  public function __construct( $token, $content_type = 'application/json' ) {
+    $this->set_api_token( $token );
     $this->set_user_agent( self::create_ua_header() );
     $this->set_content_type( $content_type );
   }
@@ -26,6 +26,13 @@ class WC_SellerLedger_API_Request {
     $this->set_endpoint( $endpoint );
     $this->set_request_body( $body );
     return new WC_SellerLedger_API_Response($this->send_get_request());
+  }
+
+  public function post($endpoint, $body) {
+    $this->set_request_type( "post" );
+    $this->set_endpoint( $endpoint );
+    $this->set_request_body( $body );
+    return new WC_SellerLedger_API_Response($this->send_post_request());
   }
 
   public function get_request_args() {
@@ -121,7 +128,7 @@ class WC_SellerLedger_API_Request {
   }
 
   public function set_api_token( $token ) {
-    $this->api_token = $token;
+  $this->api_token = $token->get();
   }
 
   public function get_user_agent() {

@@ -4,14 +4,73 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class WC_SellerLedger_Connection {
+  private $token;
+  private $connection_id;
+
+  const CONNECTION_ID_OPTION = "sellerledger-connection-id";
+
+  public function __construct( $token ) {
+    $this->token = $token;
+  }
+
+  public function getConnectionID() {
+    if ( is_null( $this->connection_id ) ) {
+      $this->connection_id = get_option( self::CONNECTION_ID_OPTION );
+    }
+
+    return $this->connection_id;
+  }
+
+  public function setConnectionID( $id ) {
+    add_option( self::CONNECTION_ID_OPTION, $id );
+    $this->connection_id = $id;
+    return $id;
+  }
+
+  public function init() {
+    $this->create();
+  }
+
+  public function create() {
+    if ( !is_null( $this->getConnectionID() ) ) {
+      return false;
+    }
+
+    $details = array(
+      'name' => urldecode(get_bloginfo('name')),
+      'type' => "asset"
+    );
+
+    $request = $this->newRequest();
+    $response = $request->post("connections", json_encode($details));
+
+    if ( $response->success() ) {
+      $this->setConnectionID($response->body()->connection->id);
+    } else {
+      error_log(print_r($request, true));
+    }
+  }
+
   public function invalid() {
+    if ( is_null( $this->getConnectionID() ) ) {
+      return true;
+    }
+
     $result = $this->verify();
-    return ($this->verify() == false);
+    return !$result;
   }
 
   private function verify() {
-    $request = new WC_SellerLedger_API_Request();
-    $response = $request->get("categories");
+    if ( is_null( $this->getConnectionID() ) ) {
+      return false;
+    }
+
+    $request = $this->newRequest();
+    $response = $request->get("connections/" . $this->connection_id);
     return $response->success();
+  }
+
+  private function newRequest() {
+    return new WC_SellerLedger_API_Request( $this->token );
   }
 }

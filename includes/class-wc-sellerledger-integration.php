@@ -6,6 +6,8 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
     protected static $_instance = null;
     public static $app_uri = 'https://app.sellerledger.com/';
     public $id;
+    private $token;
+    public $connection;
 
     public static function instance() {
       if ( is_null( self::$_instance ) ) {
@@ -18,6 +20,10 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
       $this->id = 'sellerledger-integration';
       WC_SellerLedger_Settings::init();
 
+      $this->token = new WC_SellerLedger_Token( $this->settings()[ 'api_token '] ?? null );
+      $this->connection = new WC_SellerLedger_Connection( $this->token );
+      $this->connection->init();
+
       if ( is_admin() ) {
         add_action( 'admin_enqueue_scripts', array( $this, 'load_admin_assets' ) );
       }
@@ -25,20 +31,6 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 
     public function settings() {
       return WC_SellerLedger_Settings::all();
-    }
-
-    public function activate() {
-      # $settings = new WC_SellerLedger_Settings();
-      # $settings.save();
-
-      # $connection = new WC_SellerLedger_Connection();
-      # $connection_id = $connection.create();
-
-      return true;
-    }
-
-    public function activated() {
-      return true;
     }
 
     public function load_admin_assets() {

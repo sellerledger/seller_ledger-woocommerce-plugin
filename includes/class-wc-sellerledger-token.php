@@ -4,16 +4,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class WC_SellerLedger_Token {
+  private $raw_token;
+
+  public function __construct( $raw_token ) {
+    $this->raw_token = $raw_token;
+  }
+
   public function invalid() {
     return !$this->valid();
   }
 
   public function valid() {
-    return ($this->apiToken() != null);
+    return ($this->get() != null);
   }
 
-  public function apiToken() {
-    $settings = SellerLedger()->settings();
-    return ($settings[ 'api_token' ] ?? null);
+  public function get() {
+    return $this->raw_token;
   }
 }
