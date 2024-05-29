@@ -30,6 +30,9 @@ final class WC_SellerLedger {
       include_once 'includes/class-wc-sellerledger-api-response.php';
       include_once 'includes/class-wc-sellerledger-api-request.php';
       include_once 'includes/class-wc-sellerledger-ajax.php';
+      include_once 'includes/class-wc-sellerledger-install.php';
+      include_once 'includes/class-wc-sellerledger-transaction.php';
+      include_once 'includes/class-wc-sellerledger-transaction-sync.php';
 
       add_action( 'woocommerce_integrations_init', array( $this, 'add_integration' ), 20 );
     }

@@ -9,6 +9,12 @@ class WC_SellerLedger_Connection {
 
   const CONNECTION_ID_OPTION = "sellerledger-connection-id";
 
+  public static function init( $token ) {
+    $instance = new self( $token );
+    $instance->create();
+    return $instance;
+  }
+
   public function __construct( $token ) {
     $this->token = $token;
   }
@@ -25,10 +31,6 @@ class WC_SellerLedger_Connection {
     add_option( self::CONNECTION_ID_OPTION, $id );
     $this->connection_id = $id;
     return $id;
-  }
-
-  public function init() {
-    $this->create();
   }
 
   public function create() {

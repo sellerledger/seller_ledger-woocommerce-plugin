@@ -7,6 +7,11 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
     public static $tab_id = 'sellerledger-integration';
 
     public static function init() {
+      self::add_hooks();
+      return __CLASS__;
+    }
+
+    public static function add_hooks() {
       add_filter( 'woocommerce_settings_tabs_array', array( __CLASS__, 'add_settings_tab' ), 50 );
       add_action( 'woocommerce_sections_' . self::$tab_id, array( __CLASS__, 'output_sections' ) );
       add_action( 'woocommerce_settings_' . self::$tab_id, array( __CLASS__, 'output_settings_page' ) );
@@ -16,6 +21,10 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 
     public static function get_stored_settings_identifier() {
       return 'woocommerce_' . self::$tab_id . '_settings';
+    }
+
+    public static function api_token() {
+      return (self::all()[ 'api_token' ] ?? null);
     }
 
     public static function all() {

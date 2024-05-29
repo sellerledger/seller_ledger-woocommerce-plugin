@@ -35,6 +35,13 @@ class WC_SellerLedger_API_Request {
     return new WC_SellerLedger_API_Response($this->send_post_request());
   }
 
+  public function put($endpoint, $body) {
+    $this->set_request_type( "put" );
+    $this->set_endpoint( $endpoint );
+    $this->set_request_body( $body );
+    return new WC_SellerLedger_API_Response($this->send_put_request());
+  }
+
   public function get_request_args() {
     $request_args = array(
       'headers'    => array(

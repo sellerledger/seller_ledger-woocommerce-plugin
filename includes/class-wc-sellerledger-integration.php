@@ -6,31 +6,32 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
     protected static $_instance = null;
     public static $app_uri = 'https://app.sellerledger.com/';
     public $id;
-    private $token;
+    public $settings;
+    public $token;
     public $connection;
+    public $transaction_sync;
 
     public static function instance() {
       if ( is_null( self::$_instance ) ) {
         self::$_instance = new self();
+        self::$_instance->init();
       }
       return self::$_instance;
     }
 
     public function __construct() {
       $this->id = 'sellerledger-integration';
-      WC_SellerLedger_Settings::init();
+    }
 
-      $this->token = new WC_SellerLedger_Token( $this->settings()[ 'api_token '] ?? null );
-      $this->connection = new WC_SellerLedger_Connection( $this->token );
-      $this->connection->init();
+    public function init() {
+      $this->settings = WC_SellerLedger_Settings::init();
+      $this->token = WC_SellerLedger_Token::init( $this->settings::api_token() );
+      $this->connection = WC_SellerLedger_Connection::init( $this->token );
+      $this->transaction_sync = WC_SellerLedger_Transaction_Sync::init( $this );
 
       if ( is_admin() ) {
         add_action( 'admin_enqueue_scripts', array( $this, 'load_admin_assets' ) );
       }
-    }
-
-    public function settings() {
-      return WC_SellerLedger_Settings::all();
     }
 
     public function load_admin_assets() {
@@ -42,7 +43,7 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
         array(
           'ajax_url'                   => admin_url( 'admin-ajax.php' ),
           'transaction_sync_nonce'     => wp_create_nonce( 'sellerledger-transaction-sync' ),
-          'activate_plugin_nonce'     => wp_create_nonce( 'sellerledger-activate-plugin' ),
+          'activate_plugin_nonce'      => wp_create_nonce( 'sellerledger-activate-plugin' ),
           'current_user'               => get_current_user_id(),
           'app_url'                    => untrailingslashit( self::$app_uri ),
         )
