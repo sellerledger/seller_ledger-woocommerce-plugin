@@ -40,10 +40,10 @@ class WC_SellerLedger_Transaction_Sync {
     add_action( 'woocommerce_new_order', array( $this, 'queue_order' ) );
     add_action( 'woocommerce_update_order', array( $this, 'queue_order' ) );
     add_action( 'woocommerce_order_refunded', array( $this, 'queue_refund' ), 10, 2 );
-    add_action( 'trashed_post', array( $this, 'delete_order' ), 9, 1 );
-    add_action( 'before_delete_post', array( $this, 'delete_order' ), 9, 1 );
-    add_action( 'before_delete_post', array( $this, 'delete_refund' ), 9, 1 );
-    add_action( 'untrashed_post', array( $this, 'undelete_order' ), 11 );
+    add_action( 'woocommerce_trash_order', array( $this, 'delete_order' ), 9, 1 );
+    add_action( 'woocommerce_delete_order', array( $this, 'delete_order' ), 9, 1 );
+    add_action( 'woocommerce_delete_order_refund', array( $this, 'delete_refund' ), 9, 1 );
+    add_action( 'woocommerce_untrash_order', array( $this, 'undelete_order' ), 11 );
     add_action( 'woocommerce_order_status_cancelled', array( $this, 'cancel_order' ), 10, 2 );
   }
 
