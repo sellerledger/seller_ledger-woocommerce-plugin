@@ -145,8 +145,34 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
       } elseif ( 'transaction_backfill' === $current_section ) {
         $hide_save_button = true;
         ?>
-        <p>Please enable the Seller Ledger plugin to initiate transaction backfill.</p>
+        <p>Transactions currently queued for sync to Seller Ledger.</p>
         <?php
+          self::list_queue();
+      }
+    }
+
+    public static function list_queue() {
+      $records = WC_SellerLedger_Transaction_Queries::ready_for_sync( 50 );
+
+      $out = "Record count: " . count( $records ) . "<br />";
+      echo $out;
+
+      foreach ( $records as $record ) {
+        echo "ID: {$record->id} - ";
+        echo "RID: {$record->record_id} - ";
+        echo "Type: {$record->record_type} - ";
+        echo "Status: {$record->status} - ";
+        echo "New: " . ($record->new_record ? 'yes' : 'no') . " - ";
+
+        if ( $record->record_type == "order" ) {
+          echo "Refunds: " . count($record->refunds()) . " - ";
+        }
+
+        if ( $record->status == "error" ) {
+          echo "Error: " . $record->last_error;
+        }
+
+        echo "<br />";
       }
     }
 

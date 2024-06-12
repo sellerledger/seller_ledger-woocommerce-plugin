@@ -4,7 +4,6 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 
   class WC_SellerLedger_Integration {
     protected static $_instance = null;
-    public static $app_uri = 'https://app.sellerledger.com/';
     public $id;
     public $settings;
     public $token;
@@ -17,6 +16,14 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
         self::$_instance->init();
       }
       return self::$_instance;
+    }
+
+    public static function log( $data ) {
+      if ( is_array( $data ) || is_object( $data ) ) {
+        error_log( print_r( $data, true ) );
+      } else {
+        error_log( $data );
+      }
     }
 
     public function __construct() {
@@ -44,12 +51,15 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
           'ajax_url'                   => admin_url( 'admin-ajax.php' ),
           'transaction_sync_nonce'     => wp_create_nonce( 'sellerledger-transaction-sync' ),
           'activate_plugin_nonce'      => wp_create_nonce( 'sellerledger-activate-plugin' ),
-          'current_user'               => get_current_user_id(),
-          'app_url'                    => untrailingslashit( self::$app_uri ),
+          'current_user'               => get_current_user_id()
         )
       );
 
       wp_enqueue_script( 'wc-sellerledger-admin', array( 'jquery' ) );
+    }
+
+    public function active() {
+      return $this->token->valid() && $this->connection->valid();
     }
   }
 

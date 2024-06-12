@@ -42,6 +42,12 @@ class WC_SellerLedger_API_Request {
     return new WC_SellerLedger_API_Response($this->send_put_request());
   }
 
+  public function delete($endpoint) {
+    $this->set_request_type( "delete" );
+    $this->set_endpoint( $endpoint );
+    return new WC_SellerLedger_API_Response($this->send_delete_request());
+  }
+
   public function get_request_args() {
     $request_args = array(
       'headers'    => array(

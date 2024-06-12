@@ -34,7 +34,7 @@ class WC_SellerLedger_Connection {
   }
 
   public function create() {
-    if ( !is_null( $this->getConnectionID() ) ) {
+    if ( !is_null( $this->getConnectionID() ) && $this->getConnectionID() != "" ) {
       return false;
     }
 
@@ -53,6 +53,10 @@ class WC_SellerLedger_Connection {
     }
   }
 
+  public function valid() {
+    return !$this->invalid();
+  }
+
   public function invalid() {
     if ( is_null( $this->getConnectionID() ) ) {
       return true;
@@ -63,7 +67,7 @@ class WC_SellerLedger_Connection {
   }
 
   private function verify() {
-    if ( is_null( $this->getConnectionID() ) ) {
+  if ( is_null( $this->getConnectionID() ) || $this->getConnectionID() == "" ) {
       return false;
     }
 

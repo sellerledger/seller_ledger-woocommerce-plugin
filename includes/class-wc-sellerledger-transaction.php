@@ -3,65 +3,79 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Transaction
+abstract class WC_SellerLedger_Transaction
 {
   public $id;
   public $record_id;
-  private $record_type;
+  public $record_type;
   public $status;
-  private $created_at;
-  private $updated_at;
-  private $retry_count;
-  private $last_error;
+  public $created_at;
+  public $updated_at;
+  public $retry_count;
+  public $last_error;
 
-  private $new_record;
+  public $new_record;
 
   public $order;
-  private $loaded = false;
+  public $loaded = false;
+
+  const SYNCABLE_STATUSES = array( 'completed', 'refunded' );
 
   public static function table_name() {
     global $wpdb;
     return $wpdb->prefix . 'sellerledger_queue';
   }
 
-  public static function build( $result ) {
-    $instance = new self();
-    $instance->id = $result[ 'id' ];
-    $instance->record_id = $result[ 'record_id' ];
-    $instance->record_type = $result[ 'record_type' ];
-    $instance->status = $result[ 'status' ];
-    $instance->created_at = $result[ 'created_at' ];
-    $instance->updated_at = $result[ 'updated_at' ];
-    $instance->retry_count = $result[ 'retry_count' ];
-    $instance->last_error = $result[ 'last_error' ];
+  public static function populate( $instance, $data ) {
+    $instance->id = $data[ 'id' ] ?? null;
+    $instance->record_id = $data[ 'record_id' ] ?? null;
+    $instance->record_type = $data[ 'record_type' ] ?? null;
+    $instance->status = $data[ 'status' ] ?? 'new';
+    $instance->created_at = $data[ 'created_at' ] ?? gmdate( 'Y-m-d H:i:s' );
+    $instance->updated_at = $data[ 'updated_at' ] ?? gmdate( 'Y-m-d H:i:s' );
+    $instance->retry_count = $data[ 'retry_count' ] ?? 0;
+    $instance->last_error = $data[ 'last_error' ] ?? '';
     $instance->new_record = is_null( $instance->id );
     $instance->load();
     return $instance;
   }
 
-  public static function ready_for_sync() {
-    global $wpdb;
-
-    $sql = "select * from " . self::table_name() . " where status in ('new', 'error') order by created_at asc";
-    $results = $wpdb->get_results( $sql, ARRAY_A );
-
-    $records = array();
-
-    foreach( $results as $result ) {
-      $records[] = self::build( $result );
-    }
-
-    return $records;
+  public function load() {
+    return false;
   }
 
-  public function load() {
-    $order = wc_get_order( $this->record_id );
-    if ( $order instanceof WC_Order ) {
-      $this->order = $order;
-      $this->loaded = true;
+  public function can_queue() {
+    return !$this->is_queued() && $this->can_sync();
+  }
+
+  public function can_sync() {
+    return $this->loaded && $this->syncable_status() && $this->required_fields_present();
+  }
+
+  public function required_fields_present() {
+    foreach ( $this->required_fields_with_values() as $key => $val ) {
+      if ( is_null( $val ) || $val == "" ) {
+        return false;
+      }
     }
 
-    return $this;
+    return true;
+  }
+
+  public function syncable_status() {
+    return false;
+  }
+
+  public function refunds() {
+    if ( ! $this->loaded ) {
+      return array();
+    }
+
+    return $this->order->get_refunds();
+  }
+
+  public function endpoint_name() {
+    return $this->record_type == "order" ? "orders" : "refunds";
   }
 
   public function to_json() {
@@ -70,43 +84,77 @@ class WC_SellerLedger_Transaction
 
   public function to_params() {
     if ( ! $this->loaded ) {
-      return null;
+      return;
     }
 
-    $items_params = $this->line_items_to_post_params();
-
-    $data = array(
-      'id' => $this->record_id,
-      'transaction_id' => $this->record_id,
-      'transaction_date' => "{$this->order->get_date_completed()}",
-      'currency_code' => $this->order->get_currency(),
-      'ship_to_country_code' => $this->order->get_shipping_country(),
-      'ship_to_state' => $this->order->get_shipping_state(),
-      'ship_to_zip' => $this->order->get_shipping_postcode(),
-      'total_amount' => $this->order->get_total(),
-      'goods_amount' => $this->order->get_subtotal(),
-      'shipping_amount' => $this->order->get_shipping_total(),
-      'discount_amount' => $this->order->get_discount_total(),
-      'fees_amount' => $this->order->get_total_fees(),
-      'tax_amount' => $this->order->get_total_tax(),
-      'items' => $items_params
-    );
+    $data = $this->build_params();
+    $data = $this->apply_optional_params( $data );
 
     return $data;
   }
 
-  public function line_items_to_post_params() {
+  public function build_params() {
+    $items_params = $this->line_items_to_params();
+
+    return array(
+      'id' => $this->record_id,
+      'transaction_id' => $this->record_id,
+      'transaction_date' => "{$this->order->get_date_completed()}",
+      'currency_code' => $this->order->get_currency(),
+      'total_amount' => $this->order->get_total(),
+      'goods_amount' => $this->goods_amount(),
+      'shipping_amount' => $this->order->get_shipping_total(),
+      'discount_amount' => $this->order->get_discount_total(),
+      'tax_amount' => $this->order->get_total_tax(),
+      'items' => $items_params
+    );
+  }
+
+  public function goods_amount() {
+    return $this->order->get_subtotal() + $this->order->get_total_fees();
+  }
+
+  public function apply_optional_params( $data ) {
+    SellerLedger()->log( get_class($this) );
+    foreach ( $this->build_optional_params() as $key => $val ) {
+      SellerLedger()->log( $key . " " . $val );
+      if ( !is_null( $val ) && $val != "" ) {
+        $data[ $key ] = $val;
+      }
+    }
+
+    return $data;
+  }
+
+  public function build_optional_params() {
+    return array(
+      'ship_to_country_code' => $this->order->get_shipping_country(),
+      'ship_to_state' => $this->order->get_shipping_state(),
+      'ship_to_zip' => $this->order->get_shipping_postcode(),
+    );
+  }
+
+  public function line_items_to_params() {
     $data = array();
 
-    foreach ( $this->order->get_items() as $item ) {
-      $product = $item->get_product();
+    foreach ( $this->order->get_items( array( 'line_item', 'fee' ) ) as $item ) {
+      if ( $item instanceof WC_Order_Item_Fee ) {
+        $data[] = array(
+          "product_name" => $item->get_name(),
+          "quantity" => $item->get_quantity(),
+          "total_amount" => $item->get_amount(),
+          "item_amount" => $item->get_amount()
+        );
+      } else {
+        $product = $item->get_product();
 
-      $data[] = array(
-        'product_name' => $product->get_name(),
-        'quantity' => $item->get_quantity(),
-        'total_amount' => $item->get_total(),
-        'item_amount' => $item->get_subtotal()
-      );
+        $data[] = array(
+          'product_name' => $product->get_name(),
+          'quantity' => $item->get_quantity(),
+          'total_amount' => $item->get_total(),
+          'item_amount' => $item->get_subtotal()
+        );
+      }
     }
 
     return $data;
@@ -130,6 +178,20 @@ class WC_SellerLedger_Transaction
     }
 
     $this->save();
+  }
+
+  public function is_queued() {
+    global $wpdb;
+
+    $sql = "select record_id from " . self::table_name() . " where record_id = '" . $this->record_id . "' and record_type = '" . $this->record_type . "' and status in ( 'new', 'error' )";
+
+    $results = $wpdb->get_results( $sql, ARRAY_A );
+
+    if ( empty( $results ) || ! is_array( $results ) ) {
+      return false;
+    }
+
+    return true;
   }
 
   public function save() {
@@ -156,4 +218,23 @@ class WC_SellerLedger_Transaction
     return $this;
   }
 
+  public function delete() {
+    global $wpdb;
+
+    if ( empty( $this->id ) ) {
+      return;
+    }
+
+    return $wpdb->delete( self::table_name(), array( 'id' => $this->id ) );
+  }
+
+  abstract function root_path();
+
+  public function base_uri( $connection_id ) {
+    return "connections/" . $connection_id . "/" . $this->root_path();
+  }
+
+  public function record_uri( $connection_id ) {
+    return $this->base_uri( $connection_id ) . "/" . $this->record_id;
+  }
 }
