@@ -5,10 +5,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class WC_SellerLedger_Transaction_Queries
 {
-  public static function ready_for_sync( $limit ) {
+  public static function ready_for_sync( $per_page = 50, $offset = 0 ) {
     global $wpdb;
 
-    $sql = "select * from " . WC_SellerLedger_Transaction::table_name() . " where status in ('new', 'error') order by created_at asc limit " . $limit;
+    $sql = "select * from " . WC_SellerLedger_Transaction::table_name() . " where status in ('new', 'error') order by created_at asc limit " . $offset . ", " . $per_page;
     $results = $wpdb->get_results( $sql, ARRAY_A );
 
     $records = array();
@@ -19,6 +19,33 @@ class WC_SellerLedger_Transaction_Queries
     }
 
     return $records;
+  }
+
+  public static function all_with_status( $status = '', $per_page = 50, $offset = 0 ) {
+    global $wpdb;
+
+    $where = "where 1 = 1";
+
+    if ( $status != '' ) {
+      $where = "where status = " . $status;
+    }
+
+    $sql = "select * from " . WC_SellerLedger_Transaction::table_name() . " " . $where . " order by id asc limit " . $offset . ", " . $per_page;
+    return $wpdb->get_results( $sql );
+  }
+
+  public static function count_with_status( $status = '' ) {
+    global $wpdb;
+
+    $where = "where 1 = 1";
+
+    if ( $status != '' ) {
+      $where = "where status = " . $status;
+    }
+
+    $sql = "select count(*) from " . WC_SellerLedger_Transaction::table_name() . " " . $where . " order by id asc";
+    return $wpdb->get_var( $sql );
+
   }
 
   # Gross

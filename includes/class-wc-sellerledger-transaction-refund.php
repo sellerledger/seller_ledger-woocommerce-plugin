@@ -30,7 +30,7 @@ class WC_SellerLedger_Transaction_Refund extends WC_SellerLedger_Transaction
   public function build_params() {
     $items_params = $this->line_items_to_params();
 
-    return array(
+    $data = array(
       'id' => $this->record_id,
       'transaction_id' => $this->record_id,
       'transaction_reference_id' => $this->order->get_parent_id(),
@@ -40,9 +40,14 @@ class WC_SellerLedger_Transaction_Refund extends WC_SellerLedger_Transaction
       'goods_amount' => $this->goods_amount(),
       'shipping_amount' => $this->order->get_shipping_total(),
       'discount_amount' => $this->order->get_discount_total(),
-      'tax_amount' => $this->order->get_total_tax(),
-      'items' => $items_params
+      'tax_amount' => $this->order->get_total_tax()
     );
+
+    if ( count( $items_params ) > 0 ) {
+      $data[ 'items' ] = $items_params;
+    }
+
+    return $data;
   }
 
   public function build_optional_params() {

@@ -82,6 +82,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
       $sections = array(
         ''                     => __( 'Settings', 'woocommerce' ),
         'transaction_backfill' => __( 'Transaction Backfill', 'wc-sellerledger' ),
+        'queue' => __( 'Sync Queue', 'wc-sellerledger' ),
       );
       return $sections;
     }
@@ -138,16 +139,16 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
       global $current_section;
       global $hide_save_button;
 
-      if ( '' === $current_section ) {
+      if ( $current_section == "" ) {
         $settings = self::get_settings_attributes();
         WC_Admin_Settings::output_fields( $settings );
         wp_nonce_field( 'sellerledger_settings' );
-      } elseif ( 'transaction_backfill' === $current_section ) {
+      } elseif ( $current_section == "transaction_backfill" ) {
         $hide_save_button = true;
-        ?>
-        <p>Transactions currently queued for sync to Seller Ledger.</p>
-        <?php
-          self::list_queue();
+      } elseif ( $current_section == "queue" ) {
+        $hide_save_button = true;
+        $queue = new WC_SellerLedger_Queue_Report();
+        $queue->print();
       }
     }
 
