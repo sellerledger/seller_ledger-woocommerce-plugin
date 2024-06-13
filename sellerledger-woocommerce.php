@@ -36,6 +36,7 @@ final class WC_SellerLedger {
       include_once 'includes/class-wc-sellerledger-transaction-refund.php';
       include_once 'includes/class-wc-sellerledger-transaction-queries.php';
       include_once 'includes/class-wc-sellerledger-transaction-sync.php';
+      include_once 'includes/class-wc-sellerledger-transaction-backfill.php';
       include_once 'includes/class-wc-sellerledger-queue-report.php';
 
       add_action( 'woocommerce_integrations_init', array( $this, 'add_integration' ), 20 );

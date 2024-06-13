@@ -81,7 +81,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
     public static function get_sections() {
       $sections = array(
         ''                     => __( 'Settings', 'woocommerce' ),
-        'transaction_backfill' => __( 'Transaction Backfill', 'wc-sellerledger' ),
+        'transaction_backfill' => __( 'Transaction Sync', 'wc-sellerledger' ),
         'queue' => __( 'Sync Queue', 'wc-sellerledger' ),
       );
       return $sections;
@@ -145,6 +145,8 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
         wp_nonce_field( 'sellerledger_settings' );
       } elseif ( $current_section == "transaction_backfill" ) {
         $hide_save_button = true;
+        $backfill = new WC_SellerLedger_Transaction_Backfill();
+        $backfill->print();
       } elseif ( $current_section == "queue" ) {
         $hide_save_button = true;
         $queue = new WC_SellerLedger_Queue_Report();

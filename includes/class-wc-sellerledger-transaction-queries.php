@@ -11,8 +11,11 @@ class WC_SellerLedger_Transaction_Queries
     $sql = "select * from " . WC_SellerLedger_Transaction::table_name() . " where status in ('new', 'error') order by created_at asc limit " . $offset . ", " . $per_page;
     $results = $wpdb->get_results( $sql, ARRAY_A );
 
-    $records = array();
+    return self::reify( $results );
+  }
 
+  public static function reify( $results ) {
+    $records = array();
     foreach( $results as $result ) {
       $type = self::klass_from_type( $result[ 'record_type' ] );
       $records[] = WC_SellerLedger_Transaction::populate( new $type(), $result );

@@ -169,4 +169,25 @@ class WC_SellerLedger_Transaction_Sync {
       }
     }
   }
+
+  public function backfill( $start_date, $end_date ) {
+    $orders_and_refunds = wc_get_orders(
+      array(
+        "limit" => -1,
+        "type" => array( "shop_order", "shop_order_refund" ),
+        "status" => array( "completed", "refunded" ),
+        "date_completed" => $start_date . "..." . $end_date
+      )
+    );
+
+    foreach( $orders_and_refunds as $order ) {
+      if ( $order instanceof WC_Order ) {
+        $this->queue_order( $order->get_id() );
+      } else {
+        $this->queue_refund( $order->get_id() );
+      }
+    }
+
+    return count( $orders_and_refunds );
+  }
 }

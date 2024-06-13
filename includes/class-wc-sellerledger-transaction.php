@@ -115,9 +115,7 @@ abstract class WC_SellerLedger_Transaction
   }
 
   public function apply_optional_params( $data ) {
-    SellerLedger()->log( get_class($this) );
     foreach ( $this->build_optional_params() as $key => $val ) {
-      SellerLedger()->log( $key . " " . $val );
       if ( !is_null( $val ) && $val != "" ) {
         $data[ $key ] = $val;
       }
