@@ -82,7 +82,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
       $sections = array(
         ''                     => __( 'Settings', 'woocommerce' ),
         'transaction_backfill' => __( 'Transaction Sync', 'wc-sellerledger' ),
-        'queue' => __( 'Sync Queue', 'wc-sellerledger' ),
+        'queue' => __( 'Transaction Queue', 'wc-sellerledger' ),
       );
       return $sections;
     }
@@ -145,40 +145,14 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
         wp_nonce_field( 'sellerledger_settings' );
       } elseif ( $current_section == "transaction_backfill" ) {
         $hide_save_button = true;
-        $backfill = new WC_SellerLedger_Transaction_Backfill();
+        $backfill = new WC_SellerLedger_Settings_Backfill( SellerLedger()->business );
         $backfill->print();
       } elseif ( $current_section == "queue" ) {
         $hide_save_button = true;
-        $queue = new WC_SellerLedger_Queue_Report();
+        $queue = new WC_SellerLedger_Settings_Queue();
         $queue->print();
       }
     }
-
-    public static function list_queue() {
-      $records = WC_SellerLedger_Transaction_Queries::ready_for_sync( 50 );
-
-      $out = "Record count: " . count( $records ) . "<br />";
-      echo $out;
-
-      foreach ( $records as $record ) {
-        echo "ID: {$record->id} - ";
-        echo "RID: {$record->record_id} - ";
-        echo "Type: {$record->record_type} - ";
-        echo "Status: {$record->status} - ";
-        echo "New: " . ($record->new_record ? 'yes' : 'no') . " - ";
-
-        if ( $record->record_type == "order" ) {
-          echo "Refunds: " . count($record->refunds()) . " - ";
-        }
-
-        if ( $record->status == "error" ) {
-          echo "Error: " . $record->last_error;
-        }
-
-        echo "<br />";
-      }
-    }
-
   }
 
 endif;

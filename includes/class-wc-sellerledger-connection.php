@@ -67,12 +67,12 @@ class WC_SellerLedger_Connection {
   }
 
   private function verify() {
-  if ( is_null( $this->getConnectionID() ) || $this->getConnectionID() == "" ) {
+    if ( is_null( $this->getConnectionID() ) || $this->getConnectionID() == "" ) {
       return false;
     }
 
     $request = $this->newRequest();
-    $response = $request->get("connections/" . $this->connection_id);
+    $response = $request->get("business" . $this->connection_id);
     return $response->success();
   }
 

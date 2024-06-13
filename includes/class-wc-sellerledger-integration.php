@@ -8,6 +8,7 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
     public $settings;
     public $token;
     public $connection;
+    public $business;
     public $transaction_sync;
 
     public static function instance() {
@@ -34,6 +35,7 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
       $this->settings = WC_SellerLedger_Settings::init();
       $this->token = WC_SellerLedger_Token::init( $this->settings::api_token() );
       $this->connection = WC_SellerLedger_Connection::init( $this->token );
+      $this->business = WC_SellerLedger_Business::init( $this->token );
       $this->transaction_sync = WC_SellerLedger_Transaction_Sync::init( $this );
 
       if ( is_admin() ) {

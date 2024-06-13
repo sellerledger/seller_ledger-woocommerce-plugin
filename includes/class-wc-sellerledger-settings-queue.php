@@ -7,7 +7,7 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
   require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
 
-class WC_SellerLedger_Queue_Report extends WP_List_Table {
+class WC_SellerLedger_Settings_Queue extends WP_List_Table {
   public function __construct() {
     parent::__construct(
       array(
