@@ -35,6 +35,12 @@ class WC_SellerLedger_Install
     }
   }
 
+  public static function uninstall() {
+    global $wpdb;
+    $wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "sellerledger_queue" );
+    delete_option( "sellerledger_version" );
+  }
+
   private static function tableSQL() {
     global $wpdb;
     $collate = "";

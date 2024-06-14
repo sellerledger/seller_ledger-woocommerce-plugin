@@ -17,9 +17,15 @@ class WC_SellerLedger_Transaction_Sync {
     return $instance;
   }
 
-  public static function schedule_queue_processing() {
+  public static function schedule() {
     if ( as_has_scheduled_action( self::QUEUE_NAME ) == false ) {
       as_schedule_recurring_action( strtotime( 'now' ), 600, self::QUEUE_NAME, array(), self::GROUP_NAME );
+    }
+  }
+
+  public static function unschedule() {
+    if ( as_has_scheduled_action( self::QUEUE_NAME ) ) {
+      as_unschedule_action( self::QUEUE_NAME, array(), self::GROUP_NAME );
     }
   }
 
@@ -32,7 +38,7 @@ class WC_SellerLedger_Transaction_Sync {
       return;
     }
 
-    add_action( "admin_init", array( __CLASS__, "schedule_queue_processing" ) );
+    add_action( "admin_init", array( __CLASS__, "schedule" ) );
     add_action( self::QUEUE_NAME, array( $this, "process_queue" ) );
     add_action( "woocommerce_new_order", array( $this, "queue_order" ) );
     add_action( "woocommerce_update_order", array( $this, "queue_order" ) );

@@ -31,6 +31,10 @@ if ( ! class_exists( "WC_SellerLedger_Settings" ) ) :
       return WC_Admin_Settings::get_option( self::get_stored_settings_identifier() );
     }
 
+    public static function destroy() {
+      WC_Admin_Settings::delete_option( self::get_stored_settings_identifier() );
+    }
+
     public static function add_settings_tab( $settings_tabs ) {
       $settings_tabs[ self::$tab_id ] = __( "Seller Ledger", "sellerledger" );
       return $settings_tabs;

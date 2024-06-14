@@ -15,6 +15,10 @@ class WC_SellerLedger_Connection {
     return $instance;
   }
 
+  public static function destroy() {
+    delete_option( self::CONNECTION_ID_OPTION );
+  }
+
   public function __construct( $token ) {
     $this->token = $token;
   }
