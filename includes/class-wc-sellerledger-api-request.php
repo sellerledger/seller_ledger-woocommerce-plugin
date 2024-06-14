@@ -1,6 +1,6 @@
 <?php
 
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! defined( "ABSPATH" ) ) {
 	exit;
 }
 
@@ -15,7 +15,7 @@ class WC_SellerLedger_API_Request {
 
   public static $base_url = 'https://api.sellerledger.com/v1/';
 
-  public function __construct( $token, $content_type = 'application/json' ) {
+  public function __construct( $token, $content_type = "application/json" ) {
     $this->set_api_token( $token );
     $this->set_user_agent( self::create_ua_header() );
     $this->set_content_type( $content_type );
@@ -50,23 +50,23 @@ class WC_SellerLedger_API_Request {
 
   public function get_request_args() {
     $request_args = array(
-      'headers'    => array(
-      'Authorization' => 'Bearer ' . $this->get_api_token(),
-      'Content-Type'  => $this->get_content_type()
+      "headers"    => array(
+      "Authorization" => "Bearer " . $this->get_api_token(),
+      "Content-Type"  => $this->get_content_type()
     ),
-    'user-agent' => $this->get_user_agent()
+    "user-agent" => $this->get_user_agent()
     );
 
-    if ( $this->get_request_type() === 'put' ) {
-      $request_args[ 'method' ] = 'PUT';
+    if ( $this->get_request_type() === "put" ) {
+      $request_args[ "method" ] = "PUT";
     }
 
-    if ( $this->get_request_type() === 'delete' ) {
-      $request_args[ 'method' ] = 'DELETE';
+    if ( $this->get_request_type() === "delete" ) {
+      $request_args[ "method" ] = "DELETE";
     }
 
     if ( !empty( $this->get_request_body() ) ) {
-      $request_args[ 'body' ] = $this->get_request_body();
+      $request_args[ "body" ] = $this->get_request_body();
     }
 
     return $request_args;
@@ -74,13 +74,13 @@ class WC_SellerLedger_API_Request {
 
   public function send_request() {
     switch( $this->get_request_type() ) {
-    case 'get':
+    case "get":
       return $this->send_get_request();
       break;
-    case 'put':
+    case "put":
       return $this->send_put_request();
       break;
-    case 'delete':
+    case "delete":
       return $this->send_delete_request();
       break;
     default:
@@ -109,17 +109,17 @@ class WC_SellerLedger_API_Request {
   }
 
   static function create_ua_header() {
-  $curl_version = '';
-  if ( function_exists( 'curl_version' ) ) {
+  $curl_version = "";
+  if ( function_exists( "curl_version" ) ) {
     $curl_version = curl_version();
-    $curl_version = $curl_version['version'] . '; ' . $curl_version['ssl_version'];
+    $curl_version = $curl_version["version"] . "; " . $curl_version["ssl_version"];
   }
 
   $php_version       = phpversion();
   $sellerledger_version    = WC_SellerLedger::$version;
   $woo_version       = WC()->version;
-  $wordpress_version = get_bloginfo( 'version' );
-  $site_url          = get_bloginfo( 'url' );
+  $wordpress_version = get_bloginfo( "version" );
+  $site_url          = get_bloginfo( "url" );
   $user_agent        = "SellerLedger/WooCommerce (PHP $php_version; cURL $curl_version; WordPress $wordpress_version; WooCommerce $woo_version) WC_SellerLedger/$sellerledger_version $site_url";
   return $user_agent;
   }

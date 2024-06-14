@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! defined( "ABSPATH" ) ) {
 	exit; // Exit if accessed directly.
 }
 
@@ -11,7 +11,7 @@ class WC_SellerLedger_Settings_Backfill {
   }
 
   public function print() {
-    $current_date = current_time( 'Y-m-d' );
+    $current_date = current_time( "Y-m-d" );
     $start_date = new DateTime( $this->business->sync_start_date() );
     $start_date = $start_date->format( "Y-m-d" );
     ?>

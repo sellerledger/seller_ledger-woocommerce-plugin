@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! defined( "ABSPATH" ) ) {
   exit; // Exit if accessed directly.
 }
 
@@ -18,11 +18,8 @@ class WC_SellerLedger_Transaction_Sync {
   }
 
   public static function schedule_queue_processing() {
-    $job_runs_at = as_next_scheduled_action( self::QUEUE_NAME );
-
-    if ( ! $job_runs_at ) {
-      $next_job_runs_at = time() + 30; # 600;
-      as_schedule_single_action( $next_job_runs_at, self::QUEUE_NAME, array(), self::GROUP_NAME );
+    if ( as_has_scheduled_action( self::QUEUE_NAME ) == false ) {
+      as_schedule_recurring_action( strtotime( 'now' ), 600, self::QUEUE_NAME, array(), self::GROUP_NAME );
     }
   }
 
@@ -35,22 +32,22 @@ class WC_SellerLedger_Transaction_Sync {
       return;
     }
 
-    add_action( 'admin_init', array( __CLASS__, 'schedule_queue_processing' ) );
-    add_action( self::QUEUE_NAME, array( $this, 'process_queue' ) );
-    add_action( 'woocommerce_new_order', array( $this, 'queue_order' ) );
-    add_action( 'woocommerce_update_order', array( $this, 'queue_order' ) );
-    add_action( 'woocommerce_order_refunded', array( $this, 'queue_refund' ), 10, 2 );
-    add_action( 'woocommerce_trash_order', array( $this, 'delete_order' ), 9, 1 );
-    add_action( 'woocommerce_delete_order', array( $this, 'delete_order' ), 9, 1 );
-    add_action( 'woocommerce_delete_order_refund', array( $this, 'delete_refund' ), 9, 1 );
-    add_action( 'woocommerce_untrash_order', array( $this, 'undelete_order' ), 11 );
-    add_action( 'woocommerce_order_status_cancelled', array( $this, 'cancel_order' ), 10, 2 );
+    add_action( "admin_init", array( __CLASS__, "schedule_queue_processing" ) );
+    add_action( self::QUEUE_NAME, array( $this, "process_queue" ) );
+    add_action( "woocommerce_new_order", array( $this, "queue_order" ) );
+    add_action( "woocommerce_update_order", array( $this, "queue_order" ) );
+    add_action( "woocommerce_order_refunded", array( $this, "queue_refund" ), 10, 2 );
+    add_action( "woocommerce_trash_order", array( $this, "delete_order" ), 9, 1 );
+    add_action( "woocommerce_delete_order", array( $this, "delete_order" ), 9, 1 );
+    add_action( "woocommerce_delete_order_refund", array( $this, "delete_refund" ), 9, 1 );
+    add_action( "woocommerce_untrash_order", array( $this, "undelete_order" ), 11 );
+    add_action( "woocommerce_order_status_cancelled", array( $this, "cancel_order" ), 10, 2 );
   }
 
   public function queue_order( $order_id ) {
     SellerLedger()->log( "QUEUING ORDER {$order_id}" );
 
-    $order = WC_SellerLedger_Transaction_Order::build( array( 'record_id' => $order_id ) );
+    $order = WC_SellerLedger_Transaction_Order::build( array( "record_id" => $order_id ) );
 
     if ( ! $order->can_queue() ) {
       return;
@@ -59,7 +56,7 @@ class WC_SellerLedger_Transaction_Sync {
     $refunds_data = $order->refunds();
 
     foreach ( $refunds_data as $refund_data ) {
-      $data = array( 'record_id' => $refund_data->get_id() );
+      $data = array( "record_id" => $refund_data->get_id() );
       $refund = WC_SellerLedger_Transaction_Refund::build( $data );
 
       if ( ! $refund->can_queue() ) {
@@ -75,7 +72,7 @@ class WC_SellerLedger_Transaction_Sync {
   public function queue_refund( $order_id, $refund_id ) {
     SellerLedger()->log( "QUEUING REFUND {$refund_id}" );
 
-    $refund = WC_SellerLedger_Transaction_Refund::build( array( 'record_id' => $refund_id ) );
+    $refund = WC_SellerLedger_Transaction_Refund::build( array( "record_id" => $refund_id ) );
 
     if ( ! $refund->can_queue() ) {
       return;
@@ -101,7 +98,7 @@ class WC_SellerLedger_Transaction_Sync {
 
     foreach ( $refunds_data as $refund_data ) {
       $data = array(
-        'record_id' => $refund_data->get_id()
+        "record_id" => $refund_data->get_id()
       );
 
       $refund = WC_SellerLedger_Transaction_Refund::build( $data );
@@ -164,6 +161,7 @@ class WC_SellerLedger_Transaction_Sync {
 
       if ( $response->success() ) {
         $transaction->sync_success();
+        $transaction->add_note( __( "Order synced to Seller Ledger", "wc-sellerledger" ) );
       } else {
         $transaction->sync_fail( $response->error_message() );
       }

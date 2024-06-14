@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! defined( "ABSPATH" ) ) {
 	exit; // Exit if accessed directly.
 }
 
@@ -8,7 +8,7 @@ class WC_SellerLedger_Transaction_Refund extends WC_SellerLedger_Transaction
   private $parent_order;
 
   public static function build( $data ) {
-    $data[ 'record_type' ] = "refund";
+    $data[ "record_type" ] = "refund";
     return self::populate( new self(), $data );
   }
 
@@ -31,20 +31,20 @@ class WC_SellerLedger_Transaction_Refund extends WC_SellerLedger_Transaction
     $items_params = $this->line_items_to_params();
 
     $data = array(
-      'id' => $this->record_id,
-      'transaction_id' => $this->record_id,
-      'transaction_reference_id' => $this->order->get_parent_id(),
-      'transaction_date' => "{$this->order->get_date_created()}",
-      'currency_code' => $this->order->get_currency(),
-      'total_amount' => $this->order->get_total(),
-      'goods_amount' => $this->goods_amount(),
-      'shipping_amount' => $this->order->get_shipping_total(),
-      'discount_amount' => $this->order->get_discount_total(),
-      'tax_amount' => $this->order->get_total_tax()
+      "id" => $this->record_id,
+      "transaction_id" => $this->record_id,
+      "transaction_reference_id" => $this->order->get_parent_id(),
+      "transaction_date" => "{$this->order->get_date_created()}",
+      "currency_code" => $this->order->get_currency(),
+      "total_amount" => $this->order->get_total(),
+      "goods_amount" => $this->goods_amount(),
+      "shipping_amount" => $this->order->get_shipping_total(),
+      "discount_amount" => $this->order->get_discount_total(),
+      "tax_amount" => $this->order->get_total_tax()
     );
 
     if ( count( $items_params ) > 0 ) {
-      $data[ 'items' ] = $items_params;
+      $data[ "items" ] = $items_params;
     }
 
     return $data;
@@ -52,28 +52,32 @@ class WC_SellerLedger_Transaction_Refund extends WC_SellerLedger_Transaction
 
   public function build_optional_params() {
     return array(
-      'ship_to_country_code' => $this->parent_order->get_shipping_country(),
-      'ship_to_state' => $this->parent_order->get_shipping_state(),
-      'ship_to_zip' => $this->parent_order->get_shipping_postcode(),
+      "ship_to_country_code" => $this->parent_order->get_shipping_country(),
+      "ship_to_state" => $this->parent_order->get_shipping_state(),
+      "ship_to_zip" => $this->parent_order->get_shipping_postcode(),
     );
   }
 
   public function required_fields_with_values() {
     return array(
-      'id' => $this->record_id,
-      'transaction_id' => $this->record_id,
-      'transaction_reference_id' => $this->order->get_parent_id(),
-      'transaction_date' => "{$this->order->get_date_created()}",
-      'currency_code' => $this->order->get_currency(),
-      'total_amount' => $this->order->get_total(),
-      'goods_amount' => $this->goods_amount(),
-      'ship_to_country_code' => $this->parent_order->get_shipping_country(),
-      'ship_to_state' => $this->parent_order->get_shipping_state(),
-      'ship_to_zip' => $this->parent_order->get_shipping_postcode(),
+      "id" => $this->record_id,
+      "transaction_id" => $this->record_id,
+      "transaction_reference_id" => $this->order->get_parent_id(),
+      "transaction_date" => "{$this->order->get_date_created()}",
+      "currency_code" => $this->order->get_currency(),
+      "total_amount" => $this->order->get_total(),
+      "goods_amount" => $this->goods_amount(),
+      "ship_to_country_code" => $this->parent_order->get_shipping_country(),
+      "ship_to_state" => $this->parent_order->get_shipping_state(),
+      "ship_to_zip" => $this->parent_order->get_shipping_postcode(),
     );
   }
 
   public function root_path() {
     return "transactions/refunds";
+  }
+
+  public function add_note( $note ) {
+    # Maybe a note on the parent order?
   }
 }

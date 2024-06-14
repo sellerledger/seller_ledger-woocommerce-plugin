@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! defined( "ABSPATH" ) ) {
 	exit; // Exit if accessed directly.
 }
 
@@ -17,19 +17,19 @@ class WC_SellerLedger_Transaction_Queries
   public static function reify( $results ) {
     $records = array();
     foreach( $results as $result ) {
-      $type = self::klass_from_type( $result[ 'record_type' ] );
+      $type = self::klass_from_type( $result[ "record_type" ] );
       $records[] = WC_SellerLedger_Transaction::populate( new $type(), $result );
     }
 
     return $records;
   }
 
-  public static function all_with_status( $status = '', $per_page = 50, $offset = 0 ) {
+  public static function all_with_status( $status = "", $per_page = 50, $offset = 0 ) {
     global $wpdb;
 
     $where = "where 1 = 1";
 
-    if ( $status != '' ) {
+    if ( $status != "" ) {
       $where = "where status = " . $status;
     }
 
@@ -37,12 +37,12 @@ class WC_SellerLedger_Transaction_Queries
     return $wpdb->get_results( $sql );
   }
 
-  public static function count_with_status( $status = '' ) {
+  public static function count_with_status( $status = "" ) {
     global $wpdb;
 
     $where = "where 1 = 1";
 
-    if ( $status != '' ) {
+    if ( $status != "" ) {
       $where = "where status = " . $status;
     }
 

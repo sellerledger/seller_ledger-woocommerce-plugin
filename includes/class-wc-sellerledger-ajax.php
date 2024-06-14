@@ -1,18 +1,18 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! defined( "ABSPATH" ) ) {
   exit; // Exit if accessed directly.
 }
 
 class WC_SellerLedger_AJAX {
 
   public function __construct() {
-    add_action( 'wp_ajax_wc_sellerledger_run_transaction_sync', array( $this, 'run_transaction_sync' ) );
+    add_action( "wp_ajax_wc_sellerledger_run_transaction_sync", array( $this, "run_transaction_sync" ) );
   }
 
   public function run_transaction_sync() {
-    check_admin_referer( 'sellerledger-transaction-sync', 'security' );
+    check_admin_referer( "sellerledger-transaction-sync", "security" );
 
-    $format = 'Y-m-d';
+    $format = "Y-m-d";
     $start_date = current_time( $format );
     $end_date = current_time( $format );
 
@@ -27,8 +27,8 @@ class WC_SellerLedger_AJAX {
     $record_count = SellerLedger()->transaction_sync->backfill( $start_date->format( $format ), $end_date->format( $format ) );
 
     $response = array(
-      'count' => $record_count,
-      'error' => null
+      "count" => $record_count,
+      "error" => null
     );
 
     wp_send_json( $response );

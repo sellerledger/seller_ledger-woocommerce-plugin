@@ -1,6 +1,9 @@
 <?php
+if ( ! defined( "ABSPATH" ) ) {
+  exit; // Exit if accessed directly.
+}
 
-if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
+if ( ! class_exists( "WC_SellerLedger_Integration" ) ) :
 
   class WC_SellerLedger_Integration {
     protected static $_instance = null;
@@ -28,7 +31,7 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
     }
 
     public function __construct() {
-      $this->id = 'sellerledger-integration';
+      $this->id = "sellerledger-integration";
     }
 
     public function init() {
@@ -39,25 +42,25 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
       $this->transaction_sync = WC_SellerLedger_Transaction_Sync::init( $this );
 
       if ( is_admin() ) {
-        add_action( 'admin_enqueue_scripts', array( $this, 'load_admin_assets' ) );
+        add_action( "admin_enqueue_scripts", array( $this, "load_admin_assets" ) );
       }
     }
 
     public function load_admin_assets() {
-      wp_register_script( 'wc-sellerledger-admin', plugin_dir_url( __FILE__ ) . '/js/wc-sellerledger-admin.js' );
+      wp_register_script( "wc-sellerledger-admin", plugin_dir_url( __FILE__ ) . "/js/wc-sellerledger-admin.js" );
 
       wp_localize_script(
-        'wc-sellerledger-admin',
-        'woocommerce_sellerledger_admin',
+        "wc-sellerledger-admin",
+        "woocommerce_sellerledger_admin",
         array(
-          'ajax_url'                   => admin_url( 'admin-ajax.php' ),
-          'transaction_sync_nonce'     => wp_create_nonce( 'sellerledger-transaction-sync' ),
-          'activate_plugin_nonce'      => wp_create_nonce( 'sellerledger-activate-plugin' ),
-          'current_user'               => get_current_user_id()
+          "ajax_url"                   => admin_url( "admin-ajax.php" ),
+          "transaction_sync_nonce"     => wp_create_nonce( "sellerledger-transaction-sync" ),
+          "activate_plugin_nonce"      => wp_create_nonce( "sellerledger-activate-plugin" ),
+          "current_user"               => get_current_user_id()
         )
       );
 
-      wp_enqueue_script( 'wc-sellerledger-admin', array( 'jquery' ) );
+      wp_enqueue_script( "wc-sellerledger-admin", array( "jquery" ) );
     }
 
     public function active() {

@@ -1,19 +1,19 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! defined( "ABSPATH" ) ) {
 	exit; // Exit if accessed directly.
 }
 
-if ( ! class_exists( 'WP_List_Table' ) ) {
-  require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+if ( ! class_exists( "WP_List_Table" ) ) {
+  require_once ABSPATH . "wp-admin/includes/class-wp-list-table.php";
 }
 
 class WC_SellerLedger_Settings_Queue extends WP_List_Table {
   public function __construct() {
     parent::__construct(
       array(
-        'singular' => 'record',
-        'plural' => 'records',
-        'ajax' => false
+        "singular" => "record",
+        "plural" => "records",
+        "ajax" => false
       )
     );
   }
@@ -25,14 +25,14 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
 
     echo '<div class="wrap">';
     echo $this->display();
-    echo '</div>';
+    echo "</div>";
   }
 
   public function column_default( $record, $column_name ) {
     switch( $column_name ) {
-      case 'record_type':
+      case "record_type":
         return ucfirst( $record->record_type );
-      case 'status':
+      case "status":
         $status = $record->status;
         if ( $status == "new" ) {
           return "Pending";
@@ -52,9 +52,9 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
     $total_records = WC_SellerLedger_Transaction_Queries::count_with_status( "" );
     $this->set_pagination_args(
       array(
-        'total_items' => $total_records,
-        'per_page' => $per_page,
-        'total_pages' => ceil( $total_records / $per_page )
+        "total_items" => $total_records,
+        "per_page" => $per_page,
+        "total_pages" => ceil( $total_records / $per_page )
       )
     );
     $this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );

@@ -1,5 +1,5 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
+if ( ! defined( "ABSPATH" ) ) {
 	exit; // Exit if accessed directly.
 }
 
@@ -39,8 +39,8 @@ class WC_SellerLedger_Connection {
     }
 
     $details = array(
-      'name' => urldecode(get_bloginfo('name')),
-      'type' => "asset"
+      "name" => urldecode(get_bloginfo("name")),
+      "type" => "asset"
     );
 
     $request = $this->newRequest();
@@ -72,7 +72,7 @@ class WC_SellerLedger_Connection {
     }
 
     $request = $this->newRequest();
-    $response = $request->get("business" . $this->connection_id);
+    $response = $request->get("business");
     return $response->success();
   }
 
