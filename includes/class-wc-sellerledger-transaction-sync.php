@@ -14,6 +14,7 @@ class WC_SellerLedger_Transaction_Sync {
   public static function init( $integration ) {
     $instance = new self( $integration );
     $instance->add_hooks();
+    $instance->initial_backfill();
     return $instance;
   }
 
@@ -48,6 +49,14 @@ class WC_SellerLedger_Transaction_Sync {
     add_action( "woocommerce_delete_order_refund", array( $this, "delete_refund" ), 9, 1 );
     add_action( "woocommerce_untrash_order", array( $this, "undelete_order" ), 11 );
     add_action( "woocommerce_order_status_cancelled", array( $this, "cancel_order" ), 10, 2 );
+  }
+
+  public function initial_backfill() {
+    if ( $this->integration->business->needs_backfill() ) {
+      $start_date = $this->integration->business->sync_start_date();
+      $end_date = current_time( "Y-m-d" );
+      $this->backfill( $start_date, $end_date );
+    }
   }
 
   public function queue_order( $order_id ) {
@@ -175,8 +184,7 @@ class WC_SellerLedger_Transaction_Sync {
   }
 
   public function backfill( $start_date, $end_date ) {
-    $earliest_start_date = $this->integration->sync_start_date();
-
+    $earliest_start_date = $this->integration->business->sync_start_date();
     $bounded_start_date = $start_date < $earliest_start_date ? $earliest_start_date : $start_date;
 
     $orders_and_refunds = wc_get_orders(
