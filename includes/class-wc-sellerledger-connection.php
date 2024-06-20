@@ -38,6 +38,10 @@ class WC_SellerLedger_Connection {
   }
 
   public function create() {
+  if ( $this->token->invalid() ) {
+      return false;
+    }
+
     if ( !is_null( $this->getConnectionID() ) && $this->getConnectionID() != "" ) {
       return false;
     }

@@ -24,9 +24,14 @@ class WC_SellerLedger_Business {
 
   public function __construct( $token ) {
     $this->token = $token;
+    $this->sync_start_date = new DateTime("3000-01-01");
   }
 
   public function get_metadata() {
+    if ( $this->token->invalid() ) {
+      return false;
+    }
+
     $request = new WC_SellerLedger_API_Request( $this->token );
     $response = $request->get("business");
 
