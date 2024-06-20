@@ -20,12 +20,21 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
 
   public function print() {
     echo "</form>";
+    echo "</br >";
 
     $this->prepare_items();
 
     echo '<div class="wrap">';
     echo $this->display();
     echo "</div>";
+  }
+
+  public function no_items() {
+    return __( "No orders have been queued.", "wc-sellerledger" );
+  }
+
+  protected function display_tablenav( $which ) {
+    return $this->pagination( $which );
   }
 
   public function column_default( $record, $column_name ) {
