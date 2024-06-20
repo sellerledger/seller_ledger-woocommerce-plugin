@@ -13,7 +13,7 @@ class WC_SellerLedger_API_Request {
   private $request_body;
   private $content_type;
 
-  public static $base_url = 'https://api.sellerledger.com/v1/';
+  const BASE_URL = "https://api.sellerledger.com/v1/";
 
   public function __construct( $token, $content_type = "application/json" ) {
     $this->set_api_token( $token );
@@ -125,7 +125,7 @@ class WC_SellerLedger_API_Request {
   }
 
   public function get_full_url() {
-    return self::$base_url . $this->endpoint;
+    return self::BASE_URL . $this->endpoint;
   }
 
   public function get_request_body() {
