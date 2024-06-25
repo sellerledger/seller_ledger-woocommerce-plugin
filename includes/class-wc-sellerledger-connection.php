@@ -38,7 +38,7 @@ class WC_SellerLedger_Connection {
   }
 
   public function create() {
-  if ( $this->token->invalid() ) {
+    if ( $this->token->invalid() ) {
       return false;
     }
 
@@ -46,8 +46,14 @@ class WC_SellerLedger_Connection {
       return false;
     }
 
+    if ( get_transient("sellerledger_creating_connection") == "yes" ) {
+      return false;
+    }
+
+    set_transient("sellerledger_creating_connection", "yes", 600);
+
     $details = array(
-      "name" => urldecode(get_bloginfo("name")),
+      "name" => html_entity_decode(get_bloginfo("name")),
       "type" => "asset"
     );
 
@@ -59,6 +65,8 @@ class WC_SellerLedger_Connection {
     } else {
       error_log(print_r($request, true));
     }
+
+    delete_transient("sellerledger_creating_connection");
   }
 
   public function valid() {

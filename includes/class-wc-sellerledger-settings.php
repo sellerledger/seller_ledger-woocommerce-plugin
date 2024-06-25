@@ -88,7 +88,7 @@ if ( ! class_exists( "WC_SellerLedger_Settings" ) ) :
       );
 
       if ( SellerLedger()->active() ) {
-        $sections["transaction_backfill"] = __( "Transaction Sync", "wc-sellerledger" );
+        # $sections["transaction_backfill"] = __( "Transaction Sync", "wc-sellerledger" );
         $sections["queue"] = __( "Transaction Queue", "wc-sellerledger" );
       }
 
