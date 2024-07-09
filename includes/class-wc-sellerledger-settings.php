@@ -125,7 +125,7 @@ if ( ! class_exists( "WC_SellerLedger_Settings" ) ) :
       $settings = array();
       $token = new WC_SellerLedger_Token( self::all()[ "api_token" ] ?? null );
       $connection = new WC_SellerLedger_Connection( $token );
-      $url = WC_SellerLedger_API_Request::BASE_URL;
+      $url = SellerLedger()::$app_url;
 
       if ( $token->invalid() ) {
         array_push( $settings, self::get_title( "Seller Ledger", 'To activate the Seller Ledger plugin, enter your Seller Ledger API key. Your key can be found <a href="' . $url . '/settings/api">here</a>.' ) );

@@ -57,13 +57,12 @@ class WC_SellerLedger_Connection {
       "type" => "asset"
     );
 
-    $request = $this->newRequest();
-    $response = $request->post("connections", json_encode($details));
-
-    if ( $response->success() ) {
-      $this->setConnectionID($response->body()->connection->id);
-    } else {
-      error_log(print_r($request, true));
+    try {
+      $client = SellerLedger\Client::withApiKey( $this->token->get() );
+      $response = $client->createConnection($details);
+      $this->setConnectionID($response->id);
+    } catch ( SellerLedger\Exception $e ) {
+      SellerLedger()->log( "ERROR CREATING SELLERLEDGER CONNECTION" );
     }
 
     delete_transient("sellerledger_creating_connection");
@@ -87,12 +86,12 @@ class WC_SellerLedger_Connection {
       return false;
     }
 
-    $request = $this->newRequest();
-    $response = $request->get("business");
-    return $response->success();
-  }
-
-  private function newRequest() {
-    return new WC_SellerLedger_API_Request( $this->token );
+    try {
+      $client = SellerLedger\Client::withApiKey( $this->token->get() );
+      $response = $client->getBusiness();
+      return true;
+    } catch ( SellerLedger\Exception $e ) {
+      return false;
+    }
   }
 }

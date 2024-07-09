@@ -7,6 +7,7 @@ if ( ! class_exists( "WC_SellerLedger_Integration" ) ) :
 
   class WC_SellerLedger_Integration {
     protected static $_instance = null;
+    public static $app_url = "https://app.sellerledger.com";
     public $id;
     public $settings;
     public $token;

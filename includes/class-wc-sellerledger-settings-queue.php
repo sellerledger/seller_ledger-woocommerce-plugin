@@ -48,6 +48,9 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
         } else {
           return ucfirst( $status );
         }
+      case "order_status":
+        $wc_order = wc_get_order( $record->record_id );
+        return ucfirst( $wc_order->get_status() );
       default:
         return $record->$column_name;
     }
@@ -75,7 +78,8 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
       "id" => __( "ID", "wc-sellerledger" ),
       "record_id" => __( "Record ID", "wc-sellerledger" ),
       "record_type" => __( "Record Type", "wc-sellerledger" ),
-      "status" => __( "Status", "wc-sellerledger" ),
+      "status" => __( "Queue Status", "wc-sellerledger" ),
+      "order_status" => __( "Transaction Status", "wc-sellerledger" ),
       "created_at" => __( "Created On", "wc-sellerledger" ),
       "updated_at" => __( "Updated On", "wc-sellerledger" ),
       "retry_count" => __( "Retry Count", "wc-sellerledger" ),

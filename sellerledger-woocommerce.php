@@ -19,6 +19,8 @@ if ( !$woo_active || version_compare( get_option( "woocommerce_db_version" ), WC
   return;
 }
 
+require __DIR__ . '/vendor/autoload.php';
+
 final class WC_SellerLedger {
 
   public static $version = "0.0.1";
@@ -38,8 +40,6 @@ final class WC_SellerLedger {
       include_once "includes/class-wc-sellerledger-settings.php";
       include_once "includes/class-wc-sellerledger-settings-queue.php";
       include_once "includes/class-wc-sellerledger-settings-backfill.php";
-      include_once "includes/class-wc-sellerledger-api-response.php";
-      include_once "includes/class-wc-sellerledger-api-request.php";
       include_once "includes/class-wc-sellerledger-ajax.php";
       include_once "includes/class-wc-sellerledger-install.php";
       include_once "includes/class-wc-sellerledger-transaction.php";

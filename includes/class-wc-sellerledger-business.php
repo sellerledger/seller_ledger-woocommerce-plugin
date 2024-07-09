@@ -32,15 +32,13 @@ class WC_SellerLedger_Business {
       return false;
     }
 
-    $request = new WC_SellerLedger_API_Request( $this->token );
-    $response = $request->get("business");
-
-    if ( $response->success() ) {
-      $business = $response->body()->business;
+    try {
+      $client = SellerLedger\Client::withApiKey( $this->token->get() );
+      $business = $client->getBusiness();
       $this->sync_start_date = new DateTime( $business->data_syncable_start_date );
       $this->billing_status = $business->billing_status;
-
       $this->update_sync_start_date();
+    } catch ( SellerLedger\Exception $e ) {
     }
   }
 

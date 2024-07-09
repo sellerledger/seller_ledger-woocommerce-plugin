@@ -60,8 +60,6 @@ class WC_SellerLedger_Transaction_Sync {
   }
 
   public function queue_order( $order_id ) {
-    SellerLedger()->log( "QUEUING ORDER {$order_id}" );
-
     $order = WC_SellerLedger_Transaction_Order::build( array( "record_id" => $order_id ) );
 
     if ( ! $order->can_queue() ) {
@@ -85,8 +83,6 @@ class WC_SellerLedger_Transaction_Sync {
   }
 
   public function queue_refund( $order_id, $refund_id ) {
-    SellerLedger()->log( "QUEUING REFUND {$refund_id}" );
-
     $refund = WC_SellerLedger_Transaction_Refund::build( array( "record_id" => $refund_id ) );
 
     if ( ! $refund->can_queue() ) {
@@ -97,17 +93,21 @@ class WC_SellerLedger_Transaction_Sync {
   }
 
   public function delete_order( $id ) {
-    SellerLedger()->log( "DELETING ORDER {$id}" );
-
     if ( OrderUtil::get_order_type( $id ) != "shop_order" ) {
       return;
     }
 
     $order = WC_SellerLedger_Transaction_Order::build( array( "record_id" => $id ) );
-    $request = new WC_SellerLedger_API_Request( $this->integration->token );
     $connection_id = $this->integration->connection->getConnectionID();
+    $client = SellerLedger\Client::withApiKey( $this->integration->token->get() );
 
-    $response = $request->delete( $order->record_uri( $connection_id ) );
+    try {
+      $client->deleteConnectionOrderTransaction( $connection_id, $order->record_id );
+    } catch ( SellerLedger\Exception $e ) {
+      SellerLedger()->log( "ERROR DELETING {$id} FROM SELLER LEDGER" );
+      SellerLedger()->log( $e->getMessage() );
+    }
+
     $refunds_data = $order->refunds();
     $order->delete();
 
@@ -118,29 +118,35 @@ class WC_SellerLedger_Transaction_Sync {
 
       $refund = WC_SellerLedger_Transaction_Refund::build( $data );
 
-      $request->delete( $refund->record_uri( $connection_id ) );
+      try {
+        $client->deleteConnectionRefundTransaction( $connection_id, $refund->record_id );
+      } catch ( SellerLedger\Exception $e ) {
+        SellerLedger()->log( "ERROR DELETING {$id} REFUND FROM SELLER LEDGER" );
+        SellerLedger()->log( $e->getMessage() );
+      }
+
       $refund->delete();
     }
   }
 
   public function delete_refund( $id ) {
-    SellerLedger()->log( "DELETING REFUND {$id}" );
-
     if ( OrderUtil::get_order_type( $id ) != "shop_order_refund" ) {
       return;
     }
 
     $refund = WC_SellerLedger_Transaction_Refund::build( array( "record_id" => $id ) );
-    $request = new WC_SellerLedger_API_Request( $this->integration->token );
     $connection_id = $this->integration->connection->getConnectionID();
+    $client = SellerLedger\Client::withApiKey( $this->integration->token->get() );
 
-    $response = $request->delete( $refund->record_uri( $connection_id ) );
+    try {
+      $client->deleteConnectionRefundTransaction( $connection_id, $refund->record_id );
+    } catch ( SellerLedger\Exception $e ) {
+    }
+
     $refund->delete();
   }
 
   public function undelete_order( $id ) {
-    SellerLedger()->log( "UNDELETING ORDER {$id}" );
-
     if ( ! $id ) {
       return;
     }
@@ -153,13 +159,11 @@ class WC_SellerLedger_Transaction_Sync {
   }
 
   public function cancel_order( $id, $order ) {
-    SellerLedger()->log( "CANCELING ORDER {$id}" );
-
     return $this->delete_order( $id );
   }
 
   public function process_queue() {
-    $request = new WC_SellerLedger_API_Request( $this->integration->token );
+    $client = SellerLedger\Client::withApiKey( $this->integration->token->get() );
 
     foreach ( WC_SellerLedger_Transaction_Queries::ready_for_sync( 20 ) as $transaction ) {
       if ( ! $transaction->can_sync() ) {
@@ -167,18 +171,36 @@ class WC_SellerLedger_Transaction_Sync {
       }
 
       $connection_id = $this->integration->connection->getConnectionID();
-      $body = $transaction->to_json();
-      $response = $request->post( $transaction->base_uri( $connection_id ), $body );
+      $body = $transaction->to_params();
+      $error = false;
 
-      if ( $response->not_unique() ) {
-        $response = $request->put( $transaction->record_uri( $connection_id ), $body );
+      try {
+        if ( $transaction instanceof WC_SellerLedger_Transaction_Order ) {
+          $client->createConnectionOrderTransaction( $connection_id, $body );
+        } else {
+          $client->createConnectionRefundTransaction( $connection_id, $body );
+        }
+      } catch ( SellerLedger\Exception $e ) {
+        $error = $e;
       }
 
-      if ( $response->success() ) {
+      if ( $error && $error->getCode() == 406 && strpos($error->getMessage(), "Record not unique") !== false ) {
+        try {
+          if ( $transaction instanceof WC_SellerLedger_Transaction_Order ) {
+            $client->updateConnectionOrderTransaction( $connection_id, $transaction->record_id, $body );
+          } else {
+            $client->updateConnectionRefundTransaction( $connection_id, $transaction->record_id, $body );
+          }
+        } catch ( SellerLedger\Exception $e ) {
+          $error = $e;
+        }
+      }
+
+      if ( $error === false ) {
         $transaction->sync_success();
         $transaction->add_note( __( "Order synced to Seller Ledger", "wc-sellerledger" ) );
       } else {
-        $transaction->sync_fail( $response->error_message() );
+        $transaction->sync_fail( $error->getMessage() );
       }
     }
   }

@@ -1,0 +1,27 @@
+{
+  "name": "sellerledger/seller_ledger-woocommerce-plugin",
+  "description": "Seller Ledger for WooCommerce",
+  "homepage": "https://www.sellerledger.com/",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0+",
+  "require": {
+    "composer/installers": "v2.0.0",
+		"sellerledger/seller_ledger-php": "1.0.4"
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/sellerledger/seller_ledger-php.git"
+    }
+  ],
+  "require-dev": {
+    "phpunit/phpunit": "^9.3",
+    "wp-coding-standards/wpcs": "^3.0"
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  }
+}
