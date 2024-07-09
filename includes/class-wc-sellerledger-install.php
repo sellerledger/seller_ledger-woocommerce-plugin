@@ -1,55 +1,55 @@
 <?php
-if ( ! defined( "ABSPATH" ) ) {
+if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Install
-{
-  public static function init() {
-    add_action( "init" , array( __CLASS__, "install" ) );
-  }
+class WC_SellerLedger_Install {
 
-  public static function install() {
-    if ( defined( "IFRAME_REQUEST" ) ) {
-      return;
-    }
+	public static function init() {
+		add_action( 'init', array( __CLASS__, 'install' ) );
+	}
 
-    $version = get_option( "sellerledger_version" );
+	public static function install() {
+		if ( defined( 'IFRAME_REQUEST' ) ) {
+			return;
+		}
 
-    if ( version_compare( $version, WC_SellerLedger::$version, "<" ) ) {
-      if ( get_transient( "sellerledger_installing" ) == "yes" ) {
-        return;
-      }
+		$version = get_option( 'sellerledger_version' );
 
-      set_transient( "sellerledger_installing", "yes", 600 );
+		if ( version_compare( $version, WC_SellerLedger::$version, '<' ) ) {
+			if ( get_transient( 'sellerledger_installing' ) == 'yes' ) {
+				return;
+			}
 
-      global $wpdb;
-      $wpdb->hide_errors();
-      require_once ABSPATH . "wp-admin/includes/upgrade.php";
-      $result = dbDelta( self::tableSQL() );
+			set_transient( 'sellerledger_installing', 'yes', 600 );
 
-      delete_option( "sellerledger_version" );
-      add_option( "sellerledger_version", WC_SellerLedger::$version );
+			global $wpdb;
+			$wpdb->hide_errors();
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+			$result = dbDelta( self::tableSQL() );
 
-      delete_transient( "sellerledger_installing" );
-    }
-  }
+			delete_option( 'sellerledger_version' );
+			add_option( 'sellerledger_version', WC_SellerLedger::$version );
 
-  public static function uninstall() {
-    global $wpdb;
-    $wpdb->query( "DROP TABLE IF EXISTS " . $wpdb->prefix . "sellerledger_queue" );
-    delete_option( "sellerledger_version" );
-  }
+			delete_transient( 'sellerledger_installing' );
+		}
+	}
 
-  private static function tableSQL() {
-    global $wpdb;
-    $collate = "";
+	public static function uninstall() {
+		global $wpdb;
+		$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'sellerledger_queue' );
+		delete_option( 'sellerledger_version' );
+	}
 
-    if ( $wpdb->has_cap( "collation" ) ) {
-      $collate = $wpdb->get_charset_collate();
-    }
+	private static function tableSQL() {
+		global $wpdb;
+		$collate = '';
 
-    $sql = "CREATE TABLE {$wpdb->prefix}sellerledger_queue (
+		if ( $wpdb->has_cap( 'collation' ) ) {
+			$collate = $wpdb->get_charset_collate();
+		}
+
+		$sql = "CREATE TABLE {$wpdb->prefix}sellerledger_queue (
   id bigint UNSIGNED NOT NULL auto_increment,
   record_id BIGINT UNSIGNED NOT NULL,
   record_type VARCHAR(100) NOT NULL,
@@ -62,8 +62,8 @@ class WC_SellerLedger_Install
   KEY record_id (record_id)
 ) $collate;";
 
-    return $sql;
-  }
+		return $sql;
+	}
 }
 
 WC_SellerLedger_Install::init();
