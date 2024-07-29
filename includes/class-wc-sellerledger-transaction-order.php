@@ -31,7 +31,7 @@ class WC_SellerLedger_Transaction_Order extends WC_SellerLedger_Transaction {
 			'transaction_date'     => "{$this->order->get_date_completed()}",
 			'currency_code'        => $this->order->get_currency(),
 			'total_amount'         => $this->order->get_total(),
-			'goods_amount'         => $this->goods_amount(),
+			'items_subtotal'       => $this->items_subtotal(),
 			'ship_to_country_code' => $this->order->get_shipping_country(),
 			'ship_to_state'        => $this->order->get_shipping_state(),
 			'ship_to_zip'          => $this->order->get_shipping_postcode(),

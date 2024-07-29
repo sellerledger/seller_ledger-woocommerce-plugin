@@ -102,7 +102,7 @@ class WC_SellerLedger_Transaction_Sync {
 		$client        = SellerLedger\Client::withApiKey( $this->integration->token->get() );
 
 		try {
-			$client->deleteConnectionOrderTransaction( $connection_id, $order->record_id );
+			$client->deleteOrder( $connection_id, $order->record_id );
 		} catch ( SellerLedger\Exception $e ) {
 			SellerLedger()->log( "ERROR DELETING {$id} FROM SELLER LEDGER" );
 			SellerLedger()->log( $e->getMessage() );
@@ -119,7 +119,7 @@ class WC_SellerLedger_Transaction_Sync {
 			$refund = WC_SellerLedger_Transaction_Refund::build( $data );
 
 			try {
-				$client->deleteConnectionRefundTransaction( $connection_id, $refund->record_id );
+				$client->deleteRefund( $connection_id, $refund->record_id );
 			} catch ( SellerLedger\Exception $e ) {
 				SellerLedger()->log( "ERROR DELETING {$id} REFUND FROM SELLER LEDGER" );
 				SellerLedger()->log( $e->getMessage() );
@@ -139,7 +139,7 @@ class WC_SellerLedger_Transaction_Sync {
 		$client        = SellerLedger\Client::withApiKey( $this->integration->token->get() );
 
 		try {
-			$client->deleteConnectionRefundTransaction( $connection_id, $refund->record_id );
+			$client->deleteRefund( $connection_id, $refund->record_id );
 		} catch ( SellerLedger\Exception $e ) {
 		}
 
@@ -176,20 +176,21 @@ class WC_SellerLedger_Transaction_Sync {
 
 			try {
 				if ( $transaction instanceof WC_SellerLedger_Transaction_Order ) {
-					$client->createConnectionOrderTransaction( $connection_id, $body );
+					$client->createOrder( $connection_id, $body );
 				} else {
-					$client->createConnectionRefundTransaction( $connection_id, $body );
+					$client->createRefund( $connection_id, $body );
 				}
 			} catch ( SellerLedger\Exception $e ) {
 				$error = $e;
 			}
 
 			if ( $error && $error->getCode() == 406 && strpos( $error->getMessage(), 'Record not unique' ) !== false ) {
+				$error = false;
 				try {
 					if ( $transaction instanceof WC_SellerLedger_Transaction_Order ) {
-						$client->updateConnectionOrderTransaction( $connection_id, $transaction->record_id, $body );
+						$client->updateOrder( $connection_id, $transaction->record_id, $body );
 					} else {
-						$client->updateConnectionRefundTransaction( $connection_id, $transaction->record_id, $body );
+						$client->updateRefund( $connection_id, $transaction->record_id, $body );
 					}
 				} catch ( SellerLedger\Exception $e ) {
 					$error = $e;

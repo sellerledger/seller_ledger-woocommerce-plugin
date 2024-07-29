@@ -67,7 +67,7 @@ final class WC_SellerLedger {
       return;
     }
 
-    $notice = sprintf( esc_html__( "%1$sSeller Ledger has been disabled.%2$s This version of Seller Ledger requires WooCommerce %3$s or newer. Please install or update WooCommerce to version %3$s or newer.", "wc-sellerledger" ), "<strong>", "</strong>", self::$minimum_woocommerce_version );
+    $notice = sprintf( esc_html__( "%1sSeller Ledger has been disabled.%2s This version of Seller Ledger requires WooCommerce %3s or newer. Please install or update WooCommerce to version %3s or newer.", "wc-sellerledger" ), "<strong>", "</strong>", self::$minimum_woocommerce_version, self::$minimum_woocommerce_version );
 
     ?>
       <div class="error">

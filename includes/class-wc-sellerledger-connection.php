@@ -53,8 +53,8 @@ class WC_SellerLedger_Connection {
 		set_transient( 'sellerledger_creating_connection', 'yes', 600 );
 
 		$details = array(
-			'name' => html_entity_decode( get_bloginfo( 'name' ) ),
-			'type' => 'asset',
+			'name'                       => html_entity_decode( get_bloginfo( 'name' ) ),
+			'balance_sheet_account_type' => 'asset',
 		);
 
 		try {

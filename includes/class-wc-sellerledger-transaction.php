@@ -102,7 +102,7 @@ abstract class WC_SellerLedger_Transaction {
 			'transaction_date' => "{$this->order->get_date_completed()}",
 			'currency_code'    => $this->order->get_currency(),
 			'total_amount'     => $this->order->get_total(),
-			'goods_amount'     => $this->goods_amount(),
+			'items_subtotal'   => $this->items_subtotal(),
 			'shipping_amount'  => $this->order->get_shipping_total(),
 			'discount_amount'  => $this->order->get_discount_total(),
 			'tax_amount'       => $this->order->get_total_tax(),
@@ -110,7 +110,7 @@ abstract class WC_SellerLedger_Transaction {
 		);
 	}
 
-	public function goods_amount() {
+	public function items_subtotal() {
 		return $this->order->get_subtotal() + $this->order->get_total_fees();
 	}
 

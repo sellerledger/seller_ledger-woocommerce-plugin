@@ -6,7 +6,7 @@
   "license": "GPL-2.0+",
   "require": {
     "composer/installers": "v2.0.0",
-		"sellerledger/seller_ledger-php": "1.0.4"
+		"sellerledger/seller_ledger-php": "1.2.0"
   },
   "repositories": [
     {
