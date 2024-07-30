@@ -4,10 +4,10 @@
 * Plugin URI: http://github.com/sellerledger/seller_ledger-woocommerce-plugin
 * Description: Seller Ledger's Woocommerce integration
 * Author: Seller Ledger
-* Version: 0.0.1
+* Version: 0.0.2
 * Author URI: https://www.sellerledger.com
 * @package Seller Ledger
-* @version 0.0.1
+* @version 0.0.2
 * License: GNU General Public License v2.0 or later
 * License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */

@@ -48,6 +48,9 @@ will go back to the start of the prior year.
 
 == Changelog ==
 
+= 0.0.2 =
+* Fixes to bring the plugin up to WP standards
+
 = 0.0.1 =
 * The (beta) version of the Seller Ledger plugin for WooCommerce
 
