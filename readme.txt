@@ -1,6 +1,6 @@
 === Seller Ledger ===
 Contributors: sellerledger
-Tags: woocommerce, accounting, sellerledger, seller, ledger, accrual
+Tags: woocommerce, accounting, sellerledger, seller, ledger
 Requires at least: 6.5
 Tested up to: 6.5
 Stable tag: 6.5
