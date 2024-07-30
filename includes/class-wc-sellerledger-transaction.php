@@ -79,7 +79,7 @@ abstract class WC_SellerLedger_Transaction {
 	}
 
 	public function to_json() {
-		return json_encode( $this->to_params() );
+		return wp_json_encode( $this->to_params() );
 	}
 
 	public function to_params() {
@@ -183,9 +183,7 @@ abstract class WC_SellerLedger_Transaction {
 	public function is_queued() {
 		global $wpdb;
 
-		$sql = 'select record_id from ' . self::table_name() . " where record_id = '" . $this->record_id . "' and record_type = '" . $this->record_type . "' and status in ( 'new', 'error' )";
-
-		$results = $wpdb->get_results( $sql, ARRAY_A );
+		$results = $wpdb->get_results( $wpdb->prepare( "select record_id from %s where record_id = %d and record_type = %s and status in ( 'new', 'error' )", self::table_name(), $this->record_id, $this->record_type ), ARRAY_A );
 
 		if ( empty( $results ) || ! is_array( $results ) ) {
 			return false;

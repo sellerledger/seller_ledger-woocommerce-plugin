@@ -25,7 +25,7 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
 		$this->prepare_items();
 
 		echo '<div class="wrap">';
-		echo $this->display();
+		echo esc_html($this->display());
 		echo '</div>';
 	}
 

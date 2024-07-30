@@ -8,6 +8,8 @@
 * Author URI: https://www.sellerledger.com
 * @package Seller Ledger
 * @version 0.0.1
+* License: GNU General Public License v2.0 or later
+* License URI: http://www.gnu.org/licenses/gpl-2.0.html
 */
 
 defined( "ABSPATH" ) || exit;
@@ -67,11 +69,12 @@ final class WC_SellerLedger {
       return;
     }
 
-    $notice = sprintf( esc_html__( "%1sSeller Ledger has been disabled.%2s This version of Seller Ledger requires WooCommerce %3s or newer. Please install or update WooCommerce to version %3s or newer.", "wc-sellerledger" ), "<strong>", "</strong>", self::$minimum_woocommerce_version, self::$minimum_woocommerce_version );
+    /* translators: %s: HTML <strong> tags and Woocommerce version number */
+    $notice = sprintf( __( "%1\$1sSeller Ledger has been disabled.%2\$2s This version of Seller Ledger requires WooCommerce %3\$3s or newer. Please install or update WooCommerce to version %3\$3s or newer.", "wc-sellerledger" ), "<strong>", "</strong>", self::$minimum_woocommerce_version, self::$minimum_woocommerce_version );
 
     ?>
       <div class="error">
-        <p><?php echo $notice; ?></p>
+        <p><?php echo esc_html($notice); ?></p>
       </div>
     <?php
   }

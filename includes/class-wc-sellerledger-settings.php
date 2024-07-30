@@ -95,14 +95,6 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 			return $sections;
 		}
 
-		public static function get_title( $title, $description = '' ) {
-			return array(
-				'title' => __( $title, 'wc-sellerledger' ),
-				'type'  => 'title',
-				'desc'  => __( $description, 'wc-sellerledger' ),
-			);
-		}
-
 		public static function get_api_token_field( $hidden = false ) {
 			$cid = SellerLedger()->connection->getConnectionID();
 			return array(
@@ -128,15 +120,15 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 			$url        = SellerLedger()::$app_url;
 
 			if ( $token->invalid() ) {
-				array_push( $settings, self::get_title( 'Seller Ledger', 'To activate the Seller Ledger plugin, enter your Seller Ledger API key. Your key can be found <a href="' . $url . '/settings/api">here</a>.' ) );
+				array_push( $settings, array( 'title' => __( 'Seller Ledger', 'wc-sellerledger' ), 'type' => 'title', 'desc' => 'To activate the Seller Ledger plugin, enter your Seller Ledger API key. Your key can be found <a href="' . $url . '/settings/api">here</a>.' ) );
 				array_push( $settings, self::get_section_split() );
 				array_push( $settings, self::get_api_token_field() );
 			} elseif ( $connection->invalid() ) {
-				array_push( $settings, self::get_title( 'Seller Ledger', 'You have entered a token that appears to be invalid. Please verify it is correct.' ) );
+				array_push( $settings, array( 'title' => __( 'Seller Ledger', 'wc-sellerledger' ), 'type' => 'title', 'desc' => __( 'You have entered a token that appears to be invalid. Please verify it is correct.', 'wc-sellerledger' ) ) );
 				array_push( $settings, self::get_section_split() );
 				array_push( $settings, self::get_api_token_field() );
 			} else {
-				array_push( $settings, self::get_title( 'Seller Ledger', 'Congrats! Your are connected to Seller Ledger.' ) );
+				array_push( $settings, array( 'title' => __( 'Seller Ledger', 'wc-sellerledger' ), 'type' => 'title', 'desc' => __( 'Congrats! You are connected to Seller Ledger.', 'wc-sellerledger' ) ) );
 				array_push( $settings, self::get_section_split() );
 				array_push( $settings, self::get_api_token_field() );
 			}
