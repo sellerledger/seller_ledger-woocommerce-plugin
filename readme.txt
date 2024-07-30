@@ -16,7 +16,7 @@ Bookkeeping Made Easy.
 
 Tracking finances and preparing for taxes is a hassle for any business, but for eCommerce sellers, it’s a nightmare. Fortunately, Seller Ledger has been specifically designed to simplify bookkeeping for online sellers.
 
-Seller Ledger connects securely to your online sales channels (we currently support Amazon, eBay, Etsy, Poshmark, Mercari, and WooCommerce) as well as PayPal and most banks and credit cards.
+Seller Ledger connects securely to your online sales channels (we currently support Amazon, eBay, Etsy, Poshmark, Mercari, Whatnot, Shopify, and WooCommerce) as well as PayPal and most banks and credit cards.
 
 We organize your sales data and selling fees into the proper categories, and make it simple for you to categorize the rest. You can also enter other business transactions manually, including mileage and cost of goods.
 
@@ -27,7 +27,7 @@ Avoid stock-outs. See how much you make per order. Track your inventory and prof
 = What are the requirements for using Seller Ledger with WooCommerce? =
 
 - A Seller Ledger account
-- A Seller Ledger API key
+- A Seller Ledger API key (included with a Seller Ledger account)
 
 = What does this plugin cost? =
 
