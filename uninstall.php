@@ -1,6 +1,6 @@
 <?php
 
-defined( "WP_UNINSTALL_PLUGIN" ) || exit
+defined( "WP_UNINSTALL_PLUGIN" ) || exit;
 
 include_once dirname( __FILE__ ) . "/includes/class-wc-sellerledger-transaction-sync.php";
 WC_SellerLedger_Transaction_Sync::unschedule();

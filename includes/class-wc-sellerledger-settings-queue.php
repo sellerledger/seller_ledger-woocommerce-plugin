@@ -30,7 +30,7 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
 	}
 
 	public function no_items() {
-		return __( 'No orders have been queued.', 'wc-sellerledger' );
+		return __( 'No orders have been queued.', 'seller-ledger' );
 	}
 
 	protected function display_tablenav( $which ) {
@@ -75,15 +75,15 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
 
 	public function get_columns() {
 		return array(
-			'id'           => __( 'ID', 'wc-sellerledger' ),
-			'record_id'    => __( 'Record ID', 'wc-sellerledger' ),
-			'record_type'  => __( 'Record Type', 'wc-sellerledger' ),
-			'status'       => __( 'Queue Status', 'wc-sellerledger' ),
-			'order_status' => __( 'Transaction Status', 'wc-sellerledger' ),
-			'created_at'   => __( 'Created On', 'wc-sellerledger' ),
-			'updated_at'   => __( 'Updated On', 'wc-sellerledger' ),
-			'retry_count'  => __( 'Retry Count', 'wc-sellerledger' ),
-			'last_error'   => __( 'Error', 'wc-sellerledger' ),
+			'id'           => __( 'ID', 'seller-ledger' ),
+			'record_id'    => __( 'Record ID', 'seller-ledger' ),
+			'record_type'  => __( 'Record Type', 'seller-ledger' ),
+			'status'       => __( 'Queue Status', 'seller-ledger' ),
+			'order_status' => __( 'Transaction Status', 'seller-ledger' ),
+			'created_at'   => __( 'Created On', 'seller-ledger' ),
+			'updated_at'   => __( 'Updated On', 'seller-ledger' ),
+			'retry_count'  => __( 'Retry Count', 'seller-ledger' ),
+			'last_error'   => __( 'Error', 'seller-ledger' ),
 		);
 	}
 }

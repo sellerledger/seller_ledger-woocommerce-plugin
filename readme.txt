@@ -3,7 +3,7 @@ Contributors: sellerledger
 Tags: woocommerce, accounting, sellerledger, seller, ledger
 Requires at least: 6.5
 Tested up to: 6.6
-Stable tag: 0.0.1
+Stable tag: 0.0.3
 Requires PHP: 8.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -47,6 +47,9 @@ will go back to the start of the prior year.
 3. Enter your API key on the Seller Ledger panel in the WooCommerce Settings section
 
 == Changelog ==
+
+= 0.0.3 =
+* Various plugin standards updates
 
 = 0.0.2 =
 * Fixes to bring the plugin up to WP standards

@@ -24,11 +24,11 @@ class WC_SellerLedger_AJAX {
 		$end_date   = current_time( $format );
 
 		if ( isset( $_POST['start_date'] ) ) {
-			$start_date = DateTime::createFromFormat( $format, $_POST['start_date'] );
+			$start_date = DateTime::createFromFormat( $format, sanitize_text_field( $_POST['start_date'] ) );
 		}
 
 		if ( isset( $_POST['end_date'] ) ) {
-			$end_date = DateTime::createFromFormat( $format, $_POST['end_date'] );
+			$end_date = DateTime::createFromFormat( $format, sanitize_text_field( $_POST['end_date'] ) );
 		}
 
 		$record_count = SellerLedger()->transaction_sync->backfill( $start_date->format( $format ), $end_date->format( $format ) );

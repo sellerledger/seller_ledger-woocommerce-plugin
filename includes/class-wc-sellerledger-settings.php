@@ -36,7 +36,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 		}
 
 		public static function add_settings_tab( $settings_tabs ) {
-			$settings_tabs[ self::$tab_id ] = __( 'Seller Ledger', 'sellerledger' );
+			$settings_tabs[ self::$tab_id ] = __( 'Seller Ledger', 'seller-ledger' );
 			return $settings_tabs;
 		}
 
@@ -84,12 +84,12 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 
 		public static function get_sections() {
 			$sections = array(
-				'' => __( 'Settings', 'woocommerce' ),
+				'' => __( 'Settings', 'seller-ledger' ),
 			);
 
 			if ( SellerLedger()->active() ) {
 				// $sections["transaction_backfill"] = __( "Transaction Sync", "wc-sellerledger" );
-				$sections['queue'] = __( 'Transaction Queue', 'wc-sellerledger' );
+				$sections['queue'] = __( 'Transaction Queue', 'seller-ledger' );
 			}
 
 			return $sections;
@@ -120,15 +120,15 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 			$url        = SellerLedger()::$app_url;
 
 			if ( $token->invalid() ) {
-				array_push( $settings, array( 'title' => __( 'Seller Ledger', 'wc-sellerledger' ), 'type' => 'title', 'desc' => 'To activate the Seller Ledger plugin, enter your Seller Ledger API key. Your key can be found <a href="' . $url . '/settings/api">here</a>.' ) );
+				array_push( $settings, array( 'title' => __( 'Seller Ledger', 'seller-ledger' ), 'type' => 'title', 'desc' => 'To activate the Seller Ledger plugin, enter your Seller Ledger API key. Your key can be found <a href="' . $url . '/settings/api">here</a>.' ) );
 				array_push( $settings, self::get_section_split() );
 				array_push( $settings, self::get_api_token_field() );
 			} elseif ( $connection->invalid() ) {
-				array_push( $settings, array( 'title' => __( 'Seller Ledger', 'wc-sellerledger' ), 'type' => 'title', 'desc' => __( 'You have entered a token that appears to be invalid. Please verify it is correct.', 'wc-sellerledger' ) ) );
+				array_push( $settings, array( 'title' => __( 'Seller Ledger', 'seller-ledger' ), 'type' => 'title', 'desc' => __( 'You have entered a token that appears to be invalid. Please verify it is correct.', 'seller-ledger' ) ) );
 				array_push( $settings, self::get_section_split() );
 				array_push( $settings, self::get_api_token_field() );
 			} else {
-				array_push( $settings, array( 'title' => __( 'Seller Ledger', 'wc-sellerledger' ), 'type' => 'title', 'desc' => __( 'Congrats! You are connected to Seller Ledger.', 'wc-sellerledger' ) ) );
+				array_push( $settings, array( 'title' => __( 'Seller Ledger', 'seller-ledger' ), 'type' => 'title', 'desc' => __( 'Congrats! You are connected to Seller Ledger.', 'seller-ledger' ) ) );
 				array_push( $settings, self::get_section_split() );
 				array_push( $settings, self::get_api_token_field() );
 			}

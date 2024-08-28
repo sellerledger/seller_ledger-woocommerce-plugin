@@ -199,7 +199,7 @@ class WC_SellerLedger_Transaction_Sync {
 
 			if ( $error === false ) {
 				$transaction->sync_success();
-				$transaction->add_note( __( 'Order synced to Seller Ledger', 'wc-sellerledger' ) );
+				$transaction->add_note( __( 'Order synced to Seller Ledger', 'seller-ledger' ) );
 			} else {
 				$transaction->sync_fail( $error->getMessage() );
 			}
