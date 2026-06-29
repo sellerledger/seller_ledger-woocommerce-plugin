@@ -227,27 +227,107 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 		}
 
 		private static function nexus_summary() {
-			if ( ! self::realtime_tax_enabled() ) {
+			if ( ! self::realtime_tax_enabled() || ! SellerLedger()->nexus_reachable() ) {
 				return '';
 			}
 
-			$nexus      = SellerLedger()->nexus_states();
 			$manage_url = esc_url( WC_SellerLedger_Integration::app_url() . '/taxes/sales' );
 
-			if ( ! SellerLedger()->nexus_reachable() ) {
+			$collecting  = array();
+			$approaching = array();
+			foreach ( (array) SellerLedger()->nexus_areas() as $area ) {
+				if ( ! empty( $area->collecting ) ) {
+					$collecting[] = $area;
+				} elseif ( isset( $area->status ) && 0 === strpos( (string) $area->status, 'qualifying_' ) ) {
+					$approaching[] = $area;
+				}
+			}
+
+			if ( empty( $collecting ) ) {
+				return '<br><span class="sl-status-warning">'
+					. esc_html__( 'Real-time sales tax is on, but you have no established nexus in Seller Ledger, so no sales tax will be collected.', 'seller-ledger' )
+					. ' <a href="' . $manage_url . '" target="_blank" rel="noopener">' . esc_html__( 'Set up your nexus', 'seller-ledger' ) . '</a></span>'
+					. self::nexus_approaching_note( $approaching );
+			}
+
+			return self::nexus_table( $collecting, $manage_url ) . self::nexus_approaching_note( $approaching );
+		}
+
+		private static function nexus_table( $areas, $manage_url ) {
+			/* translators: %d: number of states where the merchant collects sales tax */
+			$heading = sprintf( _n( 'Collecting sales tax in %d state', 'Collecting sales tax in %d states', count( $areas ), 'seller-ledger' ), count( $areas ) );
+
+			$html = '<p class="sl-nexus-heading"><strong>' . esc_html( $heading ) . '</strong> '
+				. '(<a href="' . $manage_url . '" target="_blank" rel="noopener">' . esc_html__( 'manage', 'seller-ledger' ) . '</a>)</p>';
+
+			$html .= '<table class="widefat striped" style="max-width:540px">'
+				. '<thead><tr>'
+				. '<th>' . esc_html__( 'State', 'seller-ledger' ) . '</th>'
+				. '<th>' . esc_html__( 'Nexus', 'seller-ledger' ) . '</th>'
+				. '<th>' . esc_html__( 'Since', 'seller-ledger' ) . '</th>'
+				. '<th>' . esc_html__( 'Filing', 'seller-ledger' ) . '</th>'
+				. '</tr></thead><tbody>';
+
+			foreach ( $areas as $area ) {
+				$name  = isset( $area->name ) ? $area->name : $area->state;
+				$html .= '<tr>'
+					. '<td>' . esc_html( $name ) . ' (' . esc_html( $area->state ) . ')</td>'
+					. '<td>' . esc_html( self::nexus_type_label( $area ) ) . '</td>'
+					. '<td>' . esc_html( self::nexus_since_label( $area ) ) . '</td>'
+					. '<td>' . esc_html( self::nexus_filing_label( $area ) ) . '</td>'
+					. '</tr>';
+			}
+
+			return $html . '</tbody></table>';
+		}
+
+		private static function nexus_approaching_note( $areas ) {
+			if ( empty( $areas ) ) {
 				return '';
 			}
 
-			if ( empty( $nexus ) ) {
-				return '<br><span class="sl-status-warning">'
-					. esc_html__( 'Real-time sales tax is on, but you have no established nexus in Seller Ledger, so no sales tax will be collected.', 'seller-ledger' )
-					. ' <a href="' . $manage_url . '" target="_blank" rel="noopener">' . esc_html__( 'Set up your nexus', 'seller-ledger' ) . '</a></span>';
+			$parts = array();
+			foreach ( $areas as $area ) {
+				$name = isset( $area->name ) ? $area->name : $area->state;
+				$pct  = isset( $area->economic_nexus->amount_percentage ) ? (float) $area->economic_nexus->amount_percentage : null;
+
+				$parts[] = null === $pct
+					? esc_html( $name )
+					/* translators: 1: state name, 2: percent toward the economic nexus threshold */
+					: esc_html( sprintf( __( '%1$s (%2$d%% of threshold)', 'seller-ledger' ), $name, round( $pct ) ) );
 			}
 
-			/* translators: %s: comma-separated list of US state codes where the merchant has nexus */
-			$summary = sprintf( esc_html__( 'Collecting sales tax in: %s', 'seller-ledger' ), '<strong>' . esc_html( implode( ', ', array_keys( $nexus ) ) ) . '</strong>' );
+			return '<p class="sl-nexus-approaching"><em>'
+				. esc_html__( 'Approaching economic nexus:', 'seller-ledger' ) . ' ' . implode( ', ', $parts )
+				. '</em></p>';
+		}
 
-			return '<br>' . $summary . ' (<a href="' . $manage_url . '" target="_blank" rel="noopener">' . esc_html__( 'manage', 'seller-ledger' ) . '</a>)';
+		private static function nexus_type_label( $area ) {
+			switch ( isset( $area->nexus_basis ) ? $area->nexus_basis : '' ) {
+				case 'economic':
+					return __( 'Economic', 'seller-ledger' );
+				case 'physical':
+					return __( 'Physical', 'seller-ledger' );
+				default:
+					return '—';
+			}
+		}
+
+		private static function nexus_since_label( $area ) {
+			if ( empty( $area->nexus_start_date ) ) {
+				return '—';
+			}
+
+			$timestamp = strtotime( $area->nexus_start_date );
+			return $timestamp ? date_i18n( 'M Y', $timestamp ) : '—';
+		}
+
+		private static function nexus_filing_label( $area ) {
+			if ( empty( $area->filing_frequency ) ) {
+				return '—';
+			}
+
+			return ucfirst( $area->filing_frequency );
 		}
 
 		private static function connect_steps( $key_url ) {

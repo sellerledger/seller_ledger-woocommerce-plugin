@@ -25,9 +25,9 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 		private $business_data_loaded = false;
 		private $business_error_code;
 		private $business_api_reachable = false;
-		private $nexus_states;
-		private $nexus_states_loaded = false;
-		private $nexus_states_ok     = false;
+		private $nexus_areas;
+		private $nexus_areas_loaded = false;
+		private $nexus_states_ok    = false;
 
 		public static function instance() {
 			if ( is_null( self::$instance ) ) {
@@ -223,14 +223,14 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 			return $this->business_data();
 		}
 
-		public function nexus_states() {
-			if ( $this->nexus_states_loaded ) {
-				return $this->nexus_states;
+		public function nexus_areas() {
+			if ( $this->nexus_areas_loaded ) {
+				return $this->nexus_areas;
 			}
 
-			$this->nexus_states_loaded = true;
-			$this->nexus_states        = array();
-			$this->nexus_states_ok     = false;
+			$this->nexus_areas_loaded = true;
+			$this->nexus_areas        = array();
+			$this->nexus_states_ok    = false;
 
 			if ( $this->token->invalid() || ! $this->connection->has_connection() ) {
 				return array();
@@ -240,7 +240,7 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 			$cached    = get_transient( $cache_key );
 
 			if ( is_array( $cached ) ) {
-				$this->nexus_states    = $cached;
+				$this->nexus_areas     = $cached;
 				$this->nexus_states_ok = true;
 				return $cached;
 			}
@@ -249,29 +249,34 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 				$client = self::api_client( $this->token->get() );
 				$nexus  = $client->getSalesTaxNexus();
 
-				$states = array();
-				foreach ( (array) $nexus as $area ) {
-					if ( empty( $area->collecting ) || ! isset( $area->state ) || '' === $area->state ) {
-						continue;
-					}
-
-					$states[ $area->state ] = isset( $area->name ) ? $area->name : $area->state;
-				}
-
-				$this->nexus_states    = $states;
+				$this->nexus_areas     = is_array( $nexus ) ? array_values( $nexus ) : array();
 				$this->nexus_states_ok = true;
-				set_transient( $cache_key, $states, self::NEXUS_CACHE_TTL );
+				set_transient( $cache_key, $this->nexus_areas, self::NEXUS_CACHE_TTL );
 			} catch ( SellerLedger\Exception $e ) {
 				self::log( 'SELLERLEDGER getSalesTaxNexus FAILED: ' . $e->getMessage() );
 			} catch ( \Throwable $e ) {
 				self::log( 'SELLERLEDGER getSalesTaxNexus FAILED: ' . $e->getMessage() );
 			}
 
-			return $this->nexus_states;
+			return $this->nexus_areas;
+		}
+
+		public function nexus_states() {
+			$states = array();
+
+			foreach ( $this->nexus_areas() as $area ) {
+				if ( empty( $area->collecting ) || ! isset( $area->state ) || '' === $area->state ) {
+					continue;
+				}
+
+				$states[ $area->state ] = isset( $area->name ) ? $area->name : $area->state;
+			}
+
+			return $states;
 		}
 
 		public function nexus_reachable() {
-			$this->nexus_states();
+			$this->nexus_areas();
 			return $this->nexus_states_ok;
 		}
 
@@ -280,10 +285,10 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 				delete_transient( 'sellerledger_nexus_' . md5( (string) $this->token->get() ) );
 			}
 
-			$this->nexus_states_loaded = false;
-			$this->nexus_states        = null;
+			$this->nexus_areas_loaded = false;
+			$this->nexus_areas        = null;
 
-			return $this->nexus_states();
+			return $this->nexus_areas();
 		}
 
 		public function business_error_code() {
