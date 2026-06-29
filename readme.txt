@@ -1,6 +1,6 @@
 === Seller Ledger ===
 Contributors: sellerledger
-Tags: woocommerce, accounting, sellerledger, seller, ledger
+Tags: woocommerce, accounting, bookkeeping, sales tax, ecommerce
 Requires at least: 6.5
 Tested up to: 6.7
 Stable tag: 0.1.0
@@ -8,31 +8,59 @@ Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Seller Ledger! WooCommerce bookkeeping made easy.
+Automated bookkeeping and real-time sales tax for WooCommerce. Sync your orders to Seller Ledger and collect accurate tax at checkout.
 
 == Description ==
 
-Bookkeeping Made Easy.
+Tracking finances and preparing for taxes is a hassle for any business, but for eCommerce sellers it's a nightmare. **Seller Ledger** is simple, automated accounting built specifically for online and marketplace sellers — and this plugin connects your WooCommerce store to it.
 
-Tracking finances and preparing for taxes is a hassle for any business, but for eCommerce sellers, it’s a nightmare. Fortunately, Seller Ledger has been specifically designed to simplify bookkeeping for online sellers.
+Once connected, your completed WooCommerce orders and refunds flow into Seller Ledger automatically, and you can calculate accurate, jurisdiction-level sales tax in real time at checkout.
 
-Seller Ledger connects securely to your online sales channels (we currently support Amazon, eBay, Etsy, Poshmark, Mercari, Whatnot, Shopify, and WooCommerce) as well as PayPal and most banks and credit cards.
+= Automated bookkeeping =
 
-We organize your sales data and selling fees into the proper categories, and make it simple for you to categorize the rest. You can also enter other business transactions manually, including mileage and cost of goods.
+* Import orders, shipping, fees, and refunds and automatically sort them into the right accounting categories.
+* Real double-entry accounting under a simple interface — no accounting background required.
+* Monthly and annual Profit & Loss reports, updated in real time.
+* A ready-to-file Schedule C generated from your sales and expenses.
+* Track inventory and cost of goods, and see your profit on every order.
 
-Avoid stock-outs. See how much you make per order. Track your inventory and profitability at the level of detail that fits your business.
+= Reconciliation across channels =
+
+* Consolidate WooCommerce alongside 30+ other marketplaces and storefronts into one set of books.
+* Orders, selling fees, refunds, and returned items are all tracked.
+* Marketplace and processor payouts are recorded as transfers, so when you also connect the bank account that receives them, deposits net cleanly and never inflate your Profit & Loss.
+
+= Bank and account connections =
+
+* Securely connect your bank and credit card accounts — more than 12,000 supported — to import transactions automatically and eliminate manual entry.
+* Connect your sales channels and payment processors (including PayPal) so everything reconciles in one place.
+
+= Sales tax: collection and reports =
+
+* **Collect the right tax at checkout.** This plugin uses Seller Ledger's sales tax engine to calculate accurate, jurisdiction-level tax — state, county, city, and special districts — in real time, based on the customer's shipping address and the states where you have nexus.
+* **Economic nexus tracking.** Seller Ledger builds every state's economic-nexus thresholds into the software, shows you where you have nexus, and alerts you as you approach each threshold so you're never caught by surprise.
+* **Return-ready reports.** Your sales and tax collected are grouped by jurisdiction so that, when it's time to file, you have everything you need to remit and file your state returns.
+
+= How the WooCommerce plugin works =
+
+* One-click connect from Seller Ledger provisions your API key and connection — no copy-pasting keys.
+* Completed orders and refunds sync automatically in the background.
+* Turn on real-time sales tax to calculate tax at checkout for the states where you have established nexus; other destinations are left untaxed.
+* See your connection status, sync history, and the states you're collecting in right from WooCommerce settings, and re-import historical orders on demand.
+
+Seller Ledger was built by a team with deep sales-tax experience, including veterans of TaxJar. Try it free for 30 days — only pay if you're happy.
 
 == External services ==
 
 This plugin connects your store to Seller Ledger, a third-party bookkeeping service, so it can
 record your sales and calculate sales tax. This connection is opt-in: nothing is sent until you
-enter your Seller Ledger API key and connect your account, and you can disconnect at any time
-from the plugin settings.
+connect your Seller Ledger account, and you can disconnect at any time by removing the plugin or
+clearing your API key in the plugin settings.
 
 When connected, the plugin sends the following to the Seller Ledger API (https://app.sellerledger.com):
 
-- Completed orders and refunds (order totals, line items, shipping, discounts, taxes, and the
-  ship-to country, state, and postal code) so they can be recorded in your books.
+- Completed orders and refunds (order totals, line items, shipping, discounts, taxes, the buyer
+  name, and the ship-to country, state, and postal code) so they can be recorded in your books.
 - For real-time sales tax (only when you enable it), the cart contents and the customer's
   ship-to address at checkout, so tax can be calculated.
 
@@ -48,30 +76,59 @@ and Privacy Policy (https://www.sellerledger.com/privacy).
 
 = What does this plugin cost? =
 
-Please see [Seller Ledger account pricing](https://sellerledger.com/#pricing).
-A monthly plan is restricted to 90 days worth of order history; a yearly plan
-will go back to the start of the prior year.
+Please see [Seller Ledger account pricing](https://sellerledger.com/pricing/). Plans start at
+$10/month with a 30-day free trial. A monthly plan imports up to 90 days of order history; an
+annual plan imports back to the start of the prior year.
+
+= Does this plugin calculate sales tax at checkout? =
+
+Yes. Enable real-time sales tax in the plugin settings and Seller Ledger calculates accurate,
+jurisdiction-level tax at checkout for the states where you have established nexus. Destinations
+where you don't have nexus are left untaxed.
+
+= Does Seller Ledger track economic nexus? =
+
+Yes. Every state's economic-nexus thresholds are built in. Seller Ledger shows where you have
+nexus and alerts you as you approach each state's threshold.
+
+= Does Seller Ledger file my sales tax returns? =
+
+Not yet. Seller Ledger gives you return-ready reports broken down by jurisdiction so you can
+remit and file accurately.
+
+= Is Seller Ledger real double-entry accounting? =
+
+Yes — with a simplified interface that hides the balance-sheet and double-entry mechanics so you
+don't need an accounting background to use it.
+
+= How are marketplace and processor payouts handled? =
+
+Payouts are recorded as transfers rather than income. When you also connect the receiving bank
+account, the matching deposits net out and don't inflate your Profit & Loss.
 
 == Screenshots ==
 
 1. The Seller Ledger dashboard
-2. Setting up a Seller Ledger connection
+2. Connecting your store to Seller Ledger
+3. Real-time sales tax and the states you're collecting in
+4. Transaction sync history and on-demand import
 
 == Installation ==
 
 1. Unzip the plugin .zip file into the `/wp-content/plugins` directory on your server.
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Enter your API key on the Seller Ledger panel in the WooCommerce Settings section
+2. Activate the plugin through the 'Plugins' menu in WordPress.
+3. Open the Seller Ledger panel in WooCommerce > Settings and click Connect, or paste your API key.
 
 == Changelog ==
 
 = 0.1.0 =
-* Add real-time sales tax calculation at checkout via the Seller Ledger sales tax API
-* Streamlined connection/onboarding with clearer status and a disconnect option
-* Reworked historical import to run in background batches (Action Scheduler)
-* Declare High-Performance Order Storage (HPOS) and Cart/Checkout Blocks compatibility
+* Real-time sales tax at checkout via the Seller Ledger sales tax engine, collecting only where you have established nexus
+* See the states you collect in — with nexus type, established date, and filing frequency — in WooCommerce settings
+* One-click connect from Seller Ledger that provisions your API key and connection
+* Per-order sync status on the order screen, and a combined Transactions tab with sync history plus on-demand import
+* Historical import runs in background batches (Action Scheduler)
+* High-Performance Order Storage (HPOS) and Cart/Checkout Blocks compatibility
 * Bundled libraries are namespaced (PHP-Scoper) to avoid conflicts with other plugins
-* Optional "remove data on uninstall" setting and a clear external-services disclosure
 * WordPress.org coding-standards pass and security/SQL hardening
 
 = 0.0.3 =
