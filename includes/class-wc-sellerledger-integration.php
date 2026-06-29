@@ -316,6 +316,10 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 				return 'invalid_token';
 			}
 
+			if ( 402 === (int) $this->business_error_code ) {
+				return 'billing_locked';
+			}
+
 			if ( ! $this->business_api_reachable ) {
 				return 'connection_failed';
 			}

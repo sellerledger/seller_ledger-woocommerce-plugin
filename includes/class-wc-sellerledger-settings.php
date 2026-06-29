@@ -165,6 +165,10 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 					return '<span class="sl-status-error">' . esc_html__( 'That API key was not accepted. Check that you copied the full key and try again.', 'seller-ledger' ) . '</span>'
 						. '<br>' . self::connect_steps( $key_url );
 
+				case 'billing_locked':
+					return '<span class="sl-status-error">' . esc_html__( 'Your Seller Ledger account is locked. Update your billing to resume syncing orders and calculating sales tax.', 'seller-ledger' ) . '</span>'
+						. ' <a href="' . esc_url( WC_SellerLedger_Integration::app_url() . '/settings/billing' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Update billing', 'seller-ledger' ) . '</a>';
+
 				case 'connection_failed':
 					$desc = '<span class="sl-status-warning">' . esc_html__( 'We reached Seller Ledger but could not finish connecting. Save again in a moment to retry.', 'seller-ledger' ) . '</span>';
 
