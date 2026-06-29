@@ -251,9 +251,11 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 
 				$states = array();
 				foreach ( (array) $nexus as $area ) {
-					if ( isset( $area->state ) && '' !== $area->state ) {
-						$states[ $area->state ] = isset( $area->name ) ? $area->name : $area->state;
+					if ( empty( $area->collecting ) || ! isset( $area->state ) || '' === $area->state ) {
+						continue;
 					}
+
+					$states[ $area->state ] = isset( $area->name ) ? $area->name : $area->state;
 				}
 
 				$this->nexus_states    = $states;
