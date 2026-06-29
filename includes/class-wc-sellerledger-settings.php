@@ -100,8 +100,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 			);
 
 			if ( SellerLedger()->active() ) {
-				$sections['transaction_backfill'] = __( 'Import Transactions', 'seller-ledger' );
-				$sections['queue']                = __( 'Transaction Queue', 'seller-ledger' );
+				$sections['transactions'] = __( 'Transactions', 'seller-ledger' );
 			}
 
 			return $sections;
@@ -406,13 +405,15 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 				$settings = self::get_settings_attributes();
 				WC_Admin_Settings::output_fields( $settings );
 				wp_nonce_field( 'sellerledger_settings' );
-			} elseif ( 'transaction_backfill' === $current_section ) {
+			} elseif ( 'transactions' === $current_section ) {
 				$hide_save_button = true; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- WooCommerce core global.
-				$backfill         = new WC_SellerLedger_Settings_Backfill( SellerLedger()->business );
+
+				echo '<h3>' . esc_html__( 'Import historical orders', 'seller-ledger' ) . '</h3>';
+				$backfill = new WC_SellerLedger_Settings_Backfill( SellerLedger()->business );
 				$backfill->render();
-			} elseif ( 'queue' === $current_section ) {
-				$hide_save_button = true; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- WooCommerce core global.
-				$queue            = new WC_SellerLedger_Settings_Queue();
+
+				echo '<h3>' . esc_html__( 'Transaction history', 'seller-ledger' ) . '</h3>';
+				$queue = new WC_SellerLedger_Settings_Queue();
 				$queue->render();
 			}
 		}
