@@ -189,40 +189,46 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 
 			if ( $business ) {
 				/* translators: %s: business name (wrapped in a strong tag) */
-				$desc .= '<br>' . sprintf( esc_html__( 'Business: %s', 'seller-ledger' ), '<strong>' . esc_html( $business ) . '</strong>' );
+				$desc .= ' &mdash; ' . sprintf( esc_html__( 'Business: %s', 'seller-ledger' ), '<strong>' . esc_html( $business ) . '</strong>' );
 			}
 
+			$desc .= self::action_buttons( $connection_id );
+
 			/* translators: %s: number of synced transactions */
-			$desc .= '<br>' . sprintf( esc_html__( 'Synced transactions: %s', 'seller-ledger' ), '<strong>' . esc_html( number_format_i18n( $counts['synced'] ) ) . '</strong>' );
+			$stats = sprintf( esc_html__( 'Synced transactions: %s', 'seller-ledger' ), '<strong>' . esc_html( number_format_i18n( $counts['synced'] ) ) . '</strong>' );
 
 			if ( $counts['pending'] > 0 ) {
 				/* translators: %s: number of transactions waiting to sync */
-				$desc .= ' &middot; ' . sprintf( esc_html__( '%s pending', 'seller-ledger' ), esc_html( number_format_i18n( $counts['pending'] ) ) );
+				$stats .= ' &middot; ' . sprintf( esc_html__( '%s pending', 'seller-ledger' ), esc_html( number_format_i18n( $counts['pending'] ) ) );
 			}
 
 			if ( $counts['failed'] > 0 ) {
 				/* translators: %s: number of transactions that failed to sync */
-				$desc .= ' &middot; <span class="sl-status-error">' . sprintf( esc_html__( '%s failed', 'seller-ledger' ), esc_html( number_format_i18n( $counts['failed'] ) ) ) . '</span>';
+				$stats .= ' &middot; <span class="sl-status-error">' . sprintf( esc_html__( '%s failed', 'seller-ledger' ), esc_html( number_format_i18n( $counts['failed'] ) ) ) . '</span>';
 			}
 
 			if ( $last ) {
 				/* translators: %s: human-readable time since the last successful sync */
-				$desc .= '<br>' . sprintf( esc_html__( 'Last sync: %s ago', 'seller-ledger' ), esc_html( human_time_diff( strtotime( $last . ' UTC' ), time() ) ) );
+				$stats .= '<br>' . sprintf( esc_html__( 'Last sync: %s ago', 'seller-ledger' ), esc_html( human_time_diff( strtotime( $last . ' UTC' ), time() ) ) );
 			}
 
+			$desc .= '<p>' . $stats . '</p>';
 			$desc .= self::nexus_summary();
 
-			$desc .= '<p><a href="' . esc_url( WC_SellerLedger_Integration::app_url() . '/dashboard' ) . '" class="button button-primary" target="_blank" rel="noopener">'
-				. esc_html__( 'View Seller Ledger Dashboard', 'seller-ledger' ) . '</a>';
+			return $desc;
+		}
+
+		private static function action_buttons( $connection_id ) {
+			$html = '<p class="sl-actions" style="margin:10px 0">'
+				. '<a href="' . esc_url( WC_SellerLedger_Integration::app_url() . '/dashboard' ) . '" class="button button-primary" target="_blank" rel="noopener">'
+				. esc_html__( 'Open Seller Ledger dashboard', 'seller-ledger' ) . '</a>';
 
 			if ( $connection_id ) {
-				$desc .= ' <a href="' . esc_url( WC_SellerLedger_Integration::app_url() . '/connections/' . rawurlencode( $connection_id ) ) . '" class="button" target="_blank" rel="noopener">'
-					. esc_html__( 'View connection', 'seller-ledger' ) . '</a>';
+				$html .= ' <a href="' . esc_url( WC_SellerLedger_Integration::app_url() . '/connections/' . rawurlencode( $connection_id ) ) . '" class="button" target="_blank" rel="noopener">'
+					. esc_html__( 'View this connection', 'seller-ledger' ) . '</a>';
 			}
 
-			$desc .= '</p>';
-
-			return $desc;
+			return $html . '</p>';
 		}
 
 		private static function nexus_summary() {
