@@ -24,7 +24,7 @@ class WC_SellerLedger_Transaction_Refund extends WC_SellerLedger_Transaction {
 	}
 
 	public function syncable_status() {
-		return in_array( $this->parent_order->get_status(), self::SYNCABLE_STATUSES );
+		return in_array( $this->parent_order->get_status(), self::SYNCABLE_STATUSES, true );
 	}
 
 	public function build_params() {
@@ -52,14 +52,19 @@ class WC_SellerLedger_Transaction_Refund extends WC_SellerLedger_Transaction {
 	}
 
 	public function build_optional_params() {
+		$ship = self::ship_to( $this->parent_order );
+
 		return array(
-			'ship_to_country_code' => $this->parent_order->get_shipping_country(),
-			'ship_to_state'        => $this->parent_order->get_shipping_state(),
-			'ship_to_zip'          => $this->parent_order->get_shipping_postcode(),
+			'ship_to_country_code' => $ship['country'],
+			'ship_to_state'        => $ship['state'],
+			'ship_to_zip'          => $ship['zip'],
+			'transacted_with'      => self::buyer_name( $this->parent_order ),
 		);
 	}
 
 	public function required_fields_with_values() {
+		$ship = self::ship_to( $this->parent_order );
+
 		return array(
 			'id'                       => $this->record_id,
 			'transaction_id'           => $this->record_id,
@@ -68,17 +73,13 @@ class WC_SellerLedger_Transaction_Refund extends WC_SellerLedger_Transaction {
 			'currency_code'            => $this->order->get_currency(),
 			'total_amount'             => $this->order->get_total(),
 			'items_subtotal'           => $this->items_subtotal(),
-			'ship_to_country_code'     => $this->parent_order->get_shipping_country(),
-			'ship_to_state'            => $this->parent_order->get_shipping_state(),
-			'ship_to_zip'              => $this->parent_order->get_shipping_postcode(),
+			'ship_to_country_code'     => $ship['country'],
+			'ship_to_state'            => $ship['state'],
+			'ship_to_zip'              => $ship['zip'],
 		);
 	}
 
-	public function root_path() {
-		return 'transactions/refunds';
-	}
-
 	public function add_note( $note ) {
-		// Maybe a note on the parent order?
+		$this->parent_order->add_order_note( $note );
 	}
 }

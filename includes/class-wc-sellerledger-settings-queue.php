@@ -18,14 +18,11 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
 		);
 	}
 
-	public function print() {
-		echo '</form>';
-		echo '</br >';
-
+	public function render() {
 		$this->prepare_items();
 
 		echo '<div class="wrap">';
-		echo esc_html($this->display());
+		$this->display();
 		echo '</div>';
 	}
 
@@ -40,19 +37,18 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
 	public function column_default( $record, $column_name ) {
 		switch ( $column_name ) {
 			case 'record_type':
-				return ucfirst( $record->record_type );
+				return esc_html( ucfirst( $record->record_type ) );
 			case 'status':
 				$status = $record->status;
-				if ( $status == 'new' ) {
-					return 'Pending';
-				} else {
-					return ucfirst( $status );
+				if ( 'new' === $status ) {
+					return esc_html__( 'Pending', 'seller-ledger' );
 				}
+				return esc_html( ucfirst( $status ) );
 			case 'order_status':
 				$wc_order = wc_get_order( $record->record_id );
-				return ucfirst( $wc_order->get_status() );
+				return $wc_order ? esc_html( ucfirst( $wc_order->get_status() ) ) : '';
 			default:
-				return $record->$column_name;
+				return esc_html( $record->$column_name );
 		}
 	}
 

@@ -17,7 +17,7 @@ class WC_SellerLedger_Install {
 		$version = get_option( 'sellerledger_version' );
 
 		if ( version_compare( $version, WC_SellerLedger::$version, '<' ) ) {
-			if ( get_transient( 'sellerledger_installing' ) == 'yes' ) {
+			if ( 'yes' === get_transient( 'sellerledger_installing' ) ) {
 				return;
 			}
 
@@ -26,7 +26,7 @@ class WC_SellerLedger_Install {
 			global $wpdb;
 			$wpdb->hide_errors();
 			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-			$result = dbDelta( self::tableSQL() );
+			$result = dbDelta( self::table_sql() );
 
 			delete_option( 'sellerledger_version' );
 			add_option( 'sellerledger_version', WC_SellerLedger::$version );
@@ -41,7 +41,7 @@ class WC_SellerLedger_Install {
 		delete_option( 'sellerledger_version' );
 	}
 
-	private static function tableSQL() {
+	private static function table_sql() {
 		global $wpdb;
 		$collate = '';
 

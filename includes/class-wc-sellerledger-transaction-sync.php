@@ -8,8 +8,12 @@ use Automattic\WooCommerce\Utilities\OrderUtil;
 class WC_SellerLedger_Transaction_Sync {
 	private $integration;
 
-	const QUEUE_NAME = 'sellerledger_queue';
-	const GROUP_NAME = 'sellerledger_group';
+	const QUEUE_NAME         = 'sellerledger_queue';
+	const GROUP_NAME         = 'sellerledger_group';
+	const PROCESS_BATCH_HOOK = 'sellerledger_process_batch';
+	const BACKFILL_HOOK      = 'sellerledger_backfill';
+	const BATCH_SIZE         = 100;
+	const BACKFILL_PAGE_SIZE = 100;
 
 	public static function init( $integration ) {
 		$instance = new self( $integration );
@@ -19,15 +23,19 @@ class WC_SellerLedger_Transaction_Sync {
 	}
 
 	public static function schedule() {
-		if ( as_has_scheduled_action( self::QUEUE_NAME ) == false ) {
-			as_schedule_recurring_action( strtotime( 'now' ), 600, self::QUEUE_NAME, array(), self::GROUP_NAME );
+		if ( ! as_has_scheduled_action( self::QUEUE_NAME ) ) {
+			as_schedule_recurring_action( time(), 600, self::QUEUE_NAME, array(), self::GROUP_NAME );
 		}
 	}
 
 	public static function unschedule() {
-		if ( as_has_scheduled_action( self::QUEUE_NAME ) ) {
-			as_unschedule_action( self::QUEUE_NAME, array(), self::GROUP_NAME );
+		if ( ! function_exists( 'as_unschedule_all_actions' ) ) {
+			return;
 		}
+
+		as_unschedule_all_actions( self::QUEUE_NAME, array(), self::GROUP_NAME );
+		as_unschedule_all_actions( self::PROCESS_BATCH_HOOK, array(), self::GROUP_NAME );
+		as_unschedule_all_actions( self::BACKFILL_HOOK, array(), self::GROUP_NAME );
 	}
 
 	public function __construct( $integration ) {
@@ -41,6 +49,8 @@ class WC_SellerLedger_Transaction_Sync {
 
 		add_action( 'admin_init', array( __CLASS__, 'schedule' ) );
 		add_action( self::QUEUE_NAME, array( $this, 'process_queue' ) );
+		add_action( self::PROCESS_BATCH_HOOK, array( $this, 'process_batch' ), 10, 1 );
+		add_action( self::BACKFILL_HOOK, array( $this, 'run_backfill' ), 10, 3 );
 		add_action( 'woocommerce_new_order', array( $this, 'queue_order' ) );
 		add_action( 'woocommerce_update_order', array( $this, 'queue_order' ) );
 		add_action( 'woocommerce_order_refunded', array( $this, 'queue_refund' ), 10, 2 );
@@ -55,8 +65,66 @@ class WC_SellerLedger_Transaction_Sync {
 		if ( $this->integration->business->needs_backfill() ) {
 			$start_date = $this->integration->business->sync_start_date();
 			$end_date   = current_time( 'Y-m-d' );
-			$this->backfill( $start_date, $end_date );
+			$this->schedule_backfill( $start_date, $end_date );
 		}
+	}
+
+	/**
+	 * Queue a date range for import as a background job. Each run processes one page
+	 * and schedules the next until the range is exhausted, so a large history never
+	 * blocks a web request.
+	 *
+	 * @param string $start_date Inclusive start date (Y-m-d).
+	 * @param string $end_date   Inclusive end date (Y-m-d).
+	 * @param int    $page       Page of results to process.
+	 * @return bool Whether a job was scheduled (or run).
+	 */
+	public function schedule_backfill( $start_date, $end_date, $page = 1 ) {
+		if ( function_exists( 'as_enqueue_async_action' ) ) {
+			if ( 1 === $page && as_has_scheduled_action( self::BACKFILL_HOOK, null, self::GROUP_NAME ) ) {
+				return false;
+			}
+
+			as_enqueue_async_action( self::BACKFILL_HOOK, array( $start_date, $end_date, $page ), self::GROUP_NAME );
+			return true;
+		}
+
+		$this->run_backfill( $start_date, $end_date, $page );
+		return true;
+	}
+
+	public function run_backfill( $start_date, $end_date, $page = 1 ) {
+		$earliest_start_date = $this->integration->business->sync_start_date();
+		$bounded_start_date  = $start_date < $earliest_start_date ? $earliest_start_date : $start_date;
+		$offset              = ( max( 1, (int) $page ) - 1 ) * self::BACKFILL_PAGE_SIZE;
+
+		$orders_and_refunds = wc_get_orders(
+			array(
+				'limit'          => self::BACKFILL_PAGE_SIZE,
+				'offset'         => $offset,
+				'orderby'        => 'date',
+				'order'          => 'ASC',
+				'type'           => array( 'shop_order', 'shop_order_refund' ),
+				'status'         => array( 'completed', 'refunded' ),
+				'date_completed' => $bounded_start_date . '...' . $end_date,
+			)
+		);
+
+		foreach ( $orders_and_refunds as $order ) {
+			if ( $order instanceof WC_Order ) {
+				$this->queue_order( $order->get_id() );
+			} else {
+				$this->queue_refund( $order->get_id() );
+			}
+		}
+
+		$count = count( $orders_and_refunds );
+
+		if ( $count >= self::BACKFILL_PAGE_SIZE ) {
+			$this->schedule_backfill( $start_date, $end_date, $page + 1 );
+		}
+
+		return $count;
 	}
 
 	public function queue_order( $order_id ) {
@@ -82,8 +150,9 @@ class WC_SellerLedger_Transaction_Sync {
 		$order->save();
 	}
 
-	public function queue_refund( $order_id, $refund_id ) {
-		$refund = WC_SellerLedger_Transaction_Refund::build( array( 'record_id' => $refund_id ) );
+	public function queue_refund( $order_id, $refund_id = null ) {
+		$record_id = is_null( $refund_id ) ? $order_id : $refund_id;
+		$refund    = WC_SellerLedger_Transaction_Refund::build( array( 'record_id' => $record_id ) );
 
 		if ( ! $refund->can_queue() ) {
 			return;
@@ -93,19 +162,18 @@ class WC_SellerLedger_Transaction_Sync {
 	}
 
 	public function delete_order( $id ) {
-		if ( OrderUtil::get_order_type( $id ) != 'shop_order' ) {
+		if ( 'shop_order' !== OrderUtil::get_order_type( $id ) ) {
 			return;
 		}
 
 		$order         = WC_SellerLedger_Transaction_Order::build( array( 'record_id' => $id ) );
-		$connection_id = $this->integration->connection->getConnectionID();
-		$client        = SellerLedger\Client::withApiKey( $this->integration->token->get() );
+		$connection_id = $this->integration->connection->get_connection_id();
+		$client        = WC_SellerLedger_Integration::api_client( $this->integration->token->get() );
 
 		try {
 			$client->deleteOrder( $connection_id, $order->record_id );
 		} catch ( SellerLedger\Exception $e ) {
-			SellerLedger()->log( "ERROR DELETING {$id} FROM SELLER LEDGER" );
-			SellerLedger()->log( $e->getMessage() );
+			SellerLedger()->log( "ERROR DELETING {$id} FROM SELLER LEDGER: " . $e->getMessage() );
 		}
 
 		$refunds_data = $order->refunds();
@@ -121,8 +189,7 @@ class WC_SellerLedger_Transaction_Sync {
 			try {
 				$client->deleteRefund( $connection_id, $refund->record_id );
 			} catch ( SellerLedger\Exception $e ) {
-				SellerLedger()->log( "ERROR DELETING {$id} REFUND FROM SELLER LEDGER" );
-				SellerLedger()->log( $e->getMessage() );
+				SellerLedger()->log( "ERROR DELETING {$id} REFUND FROM SELLER LEDGER: " . $e->getMessage() );
 			}
 
 			$refund->delete();
@@ -130,17 +197,18 @@ class WC_SellerLedger_Transaction_Sync {
 	}
 
 	public function delete_refund( $id ) {
-		if ( OrderUtil::get_order_type( $id ) != 'shop_order_refund' ) {
+		if ( 'shop_order_refund' !== OrderUtil::get_order_type( $id ) ) {
 			return;
 		}
 
 		$refund        = WC_SellerLedger_Transaction_Refund::build( array( 'record_id' => $id ) );
-		$connection_id = $this->integration->connection->getConnectionID();
-		$client        = SellerLedger\Client::withApiKey( $this->integration->token->get() );
+		$connection_id = $this->integration->connection->get_connection_id();
+		$client        = WC_SellerLedger_Integration::api_client( $this->integration->token->get() );
 
 		try {
 			$client->deleteRefund( $connection_id, $refund->record_id );
 		} catch ( SellerLedger\Exception $e ) {
+			SellerLedger()->log( "ERROR DELETING REFUND {$id} FROM SELLER LEDGER: " . $e->getMessage() );
 		}
 
 		$refund->delete();
@@ -151,82 +219,89 @@ class WC_SellerLedger_Transaction_Sync {
 			return;
 		}
 
-		if ( OrderUtil::get_order_type( $id ) != 'shop_order' ) {
+		if ( 'shop_order' !== OrderUtil::get_order_type( $id ) ) {
 			return;
 		}
 
-		return $this->queue_order( $id );
+		$this->queue_order( $id );
 	}
 
-	public function cancel_order( $id, $order ) {
-		return $this->delete_order( $id );
+	public function cancel_order( $id, $order ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- $order is part of the woocommerce_order_status_cancelled action signature.
+		$this->delete_order( $id );
 	}
 
+	/**
+	 * Recurring job: split the active queue into batches and schedule a dedicated
+	 * background action for each, so every batch is retried and observable on its
+	 * own in the Scheduled Actions screen.
+	 */
 	public function process_queue() {
-		$client = SellerLedger\Client::withApiKey( $this->integration->token->get() );
+		if ( as_has_scheduled_action( self::PROCESS_BATCH_HOOK, null, self::GROUP_NAME ) ) {
+			return;
+		}
 
-		foreach ( WC_SellerLedger_Transaction_Queries::ready_for_sync( 20 ) as $transaction ) {
+		$ids = WC_SellerLedger_Transaction_Queries::active_ids();
+
+		if ( empty( $ids ) ) {
+			return;
+		}
+
+		foreach ( array_chunk( $ids, self::BATCH_SIZE ) as $chunk ) {
+			as_schedule_single_action( time(), self::PROCESS_BATCH_HOOK, array( 'queue_ids' => $chunk ), self::GROUP_NAME );
+		}
+	}
+
+	public function process_batch( $args ) {
+		$ids = isset( $args['queue_ids'] ) ? array_map( 'intval', (array) $args['queue_ids'] ) : array();
+
+		if ( empty( $ids ) ) {
+			return;
+		}
+
+		$client = WC_SellerLedger_Integration::api_client( $this->integration->token->get() );
+
+		foreach ( WC_SellerLedger_Transaction_Queries::for_ids( $ids ) as $transaction ) {
 			if ( ! $transaction->can_sync() ) {
 				continue;
 			}
 
-			$connection_id = $this->integration->connection->getConnectionID();
-			$body          = $transaction->to_params();
-			$error         = false;
+			$this->sync_transaction( $transaction, $client );
+		}
+	}
 
+	private function sync_transaction( $transaction, $client ) {
+		$connection_id = $this->integration->connection->get_connection_id();
+		$body          = $transaction->to_params();
+		$error         = false;
+
+		try {
+			if ( $transaction instanceof WC_SellerLedger_Transaction_Order ) {
+				$client->createOrder( $connection_id, $body );
+			} else {
+				$client->createRefund( $connection_id, $body );
+			}
+		} catch ( SellerLedger\Exception $e ) {
+			$error = $e;
+		}
+
+		if ( $error && 406 === (int) $error->getCode() && false !== strpos( $error->getMessage(), 'Record not unique' ) ) {
+			$error = false;
 			try {
 				if ( $transaction instanceof WC_SellerLedger_Transaction_Order ) {
-					$client->createOrder( $connection_id, $body );
+					$client->updateOrder( $connection_id, $transaction->record_id, $body );
 				} else {
-					$client->createRefund( $connection_id, $body );
+					$client->updateRefund( $connection_id, $transaction->record_id, $body );
 				}
 			} catch ( SellerLedger\Exception $e ) {
 				$error = $e;
 			}
-
-			if ( $error && $error->getCode() == 406 && strpos( $error->getMessage(), 'Record not unique' ) !== false ) {
-				$error = false;
-				try {
-					if ( $transaction instanceof WC_SellerLedger_Transaction_Order ) {
-						$client->updateOrder( $connection_id, $transaction->record_id, $body );
-					} else {
-						$client->updateRefund( $connection_id, $transaction->record_id, $body );
-					}
-				} catch ( SellerLedger\Exception $e ) {
-					$error = $e;
-				}
-			}
-
-			if ( $error === false ) {
-				$transaction->sync_success();
-				$transaction->add_note( __( 'Order synced to Seller Ledger', 'seller-ledger' ) );
-			} else {
-				$transaction->sync_fail( $error->getMessage() );
-			}
-		}
-	}
-
-	public function backfill( $start_date, $end_date ) {
-		$earliest_start_date = $this->integration->business->sync_start_date();
-		$bounded_start_date  = $start_date < $earliest_start_date ? $earliest_start_date : $start_date;
-
-		$orders_and_refunds = wc_get_orders(
-			array(
-				'limit'          => -1,
-				'type'           => array( 'shop_order', 'shop_order_refund' ),
-				'status'         => array( 'completed', 'refunded' ),
-				'date_completed' => $bounded_start_date . '...' . $end_date,
-			)
-		);
-
-		foreach ( $orders_and_refunds as $order ) {
-			if ( $order instanceof WC_Order ) {
-				$this->queue_order( $order->get_id() );
-			} else {
-				$this->queue_refund( $order->get_id() );
-			}
 		}
 
-		return count( $orders_and_refunds );
+		if ( false === $error ) {
+			$transaction->sync_success();
+			$transaction->add_note( __( 'Order synced to Seller Ledger', 'seller-ledger' ) );
+		} else {
+			$transaction->sync_fail( $error->getMessage() );
+		}
 	}
 }

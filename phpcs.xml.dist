@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<ruleset name="Seller Ledger for WooCommerce">
+	<description>Coding standards for the Seller Ledger WooCommerce plugin.</description>
+
+	<file>.</file>
+
+	<arg name="extensions" value="php"/>
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+	<arg name="parallel" value="8"/>
+
+	<!-- Third-party and tooling code is not ours to lint. -->
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/tests/*</exclude-pattern>
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+	<!-- Build-time config, not shipped in the plugin zip. -->
+	<exclude-pattern>/scoper.inc.php</exclude-pattern>
+
+	<rule ref="WordPress"/>
+	<rule ref="WordPress-Extra"/>
+	<rule ref="WooCommerce-Core"/>
+
+	<!--
+		Keep WooCommerce-Core's substantive sniffs (security, i18n, escaping, SQL),
+		but don't require exhaustive PHPDoc on every method/property. WordPress.org
+		review (Plugin Check + the WordPress standard) does not require this; we still
+		document public APIs by hand.
+	-->
+	<rule ref="Squiz.Commenting.FileComment.Missing">
+		<severity>0</severity>
+	</rule>
+	<rule ref="Squiz.Commenting.ClassComment.Missing">
+		<severity>0</severity>
+	</rule>
+	<rule ref="Squiz.Commenting.FunctionComment.Missing">
+		<severity>0</severity>
+	</rule>
+	<rule ref="Squiz.Commenting.VariableComment.Missing">
+		<severity>0</severity>
+	</rule>
+
+	<!-- manage_woocommerce is a real WooCommerce capability. -->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="manage_woocommerce"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!--
+		The main plugin file is the bootstrap: it legitimately holds the plugin header,
+		the bootstrap class, and the SellerLedger() accessor (mirrors WooCommerce's WC()).
+		These structural sniffs don't apply to it.
+	-->
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<exclude-pattern>sellerledger-woocommerce.php</exclude-pattern>
+	</rule>
+	<rule ref="Universal.Files.SeparateFunctionsFromOO.Mixed">
+		<exclude-pattern>sellerledger-woocommerce.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid">
+		<exclude-pattern>sellerledger-woocommerce.php</exclude-pattern>
+	</rule>
+
+	<!--
+		These two files are the data-access layer for the plugin's own custom queue
+		table ({prefix}sellerledger_queue). DirectDatabaseQuery (direct $wpdb access +
+		object caching) does not apply: there is no core API for a custom table, and a
+		job queue must read live state, never a cached copy.
+	-->
+	<rule ref="WordPress.DB.DirectDatabaseQuery">
+		<exclude-pattern>includes/class-wc-sellerledger-transaction.php</exclude-pattern>
+		<exclude-pattern>includes/class-wc-sellerledger-transaction-queries.php</exclude-pattern>
+	</rule>
+
+	<!-- Minimum supported versions (keep in sync with the plugin headers + readme.txt). -->
+	<config name="minimum_supported_wp_version" value="6.5"/>
+	<config name="testVersion" value="8.0-"/>
+	<rule ref="PHPCompatibilityWP"/>
+
+	<!-- Our text domain and naming prefixes. -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="seller-ledger"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="sellerledger"/>
+				<element value="wc_sellerledger"/>
+				<element value="WC_SellerLedger"/>
+				<element value="SELLERLEDGER"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>

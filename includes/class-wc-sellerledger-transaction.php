@@ -54,7 +54,7 @@ abstract class WC_SellerLedger_Transaction {
 
 	public function required_fields_present() {
 		foreach ( $this->required_fields_with_values() as $key => $val ) {
-			if ( is_null( $val ) || $val == '' ) {
+			if ( is_null( $val ) || '' === $val ) {
 				return false;
 			}
 		}
@@ -72,10 +72,6 @@ abstract class WC_SellerLedger_Transaction {
 		}
 
 		return $this->order->get_refunds();
-	}
-
-	public function endpoint_name() {
-		return $this->record_type == 'order' ? 'orders' : 'refunds';
 	}
 
 	public function to_json() {
@@ -116,7 +112,7 @@ abstract class WC_SellerLedger_Transaction {
 
 	public function apply_optional_params( $data ) {
 		foreach ( $this->build_optional_params() as $key => $val ) {
-			if ( ! is_null( $val ) && $val != '' ) {
+			if ( ! is_null( $val ) && '' !== $val ) {
 				$data[ $key ] = $val;
 			}
 		}
@@ -125,11 +121,48 @@ abstract class WC_SellerLedger_Transaction {
 	}
 
 	public function build_optional_params() {
+		$ship = self::ship_to( $this->order );
+
 		return array(
-			'ship_to_country_code' => $this->order->get_shipping_country(),
-			'ship_to_state'        => $this->order->get_shipping_state(),
-			'ship_to_zip'          => $this->order->get_shipping_postcode(),
+			'ship_to_country_code' => $ship['country'],
+			'ship_to_state'        => $ship['state'],
+			'ship_to_zip'          => $ship['zip'],
 		);
+	}
+
+	public static function ship_to( $order ) {
+		if ( '' !== $order->get_shipping_country() ) {
+			return array(
+				'country' => $order->get_shipping_country(),
+				'state'   => $order->get_shipping_state(),
+				'zip'     => $order->get_shipping_postcode(),
+			);
+		}
+
+		return array(
+			'country' => $order->get_billing_country(),
+			'state'   => $order->get_billing_state(),
+			'zip'     => $order->get_billing_postcode(),
+		);
+	}
+
+	public static function buyer_name( $order ) {
+		$name = trim( $order->get_formatted_billing_full_name() );
+		if ( '' !== $name ) {
+			return $name;
+		}
+
+		$company = $order->get_billing_company();
+		if ( '' !== $company ) {
+			return $company;
+		}
+
+		$email = $order->get_billing_email();
+		if ( '' !== $email ) {
+			return $email;
+		}
+
+		return __( 'Guest', 'seller-ledger' );
 	}
 
 	public function line_items_to_params() {
@@ -183,13 +216,9 @@ abstract class WC_SellerLedger_Transaction {
 	public function is_queued() {
 		global $wpdb;
 
-		$results = $wpdb->get_results( $wpdb->prepare( "select record_id from %s where record_id = %d and record_type = %s and status in ( 'new', 'error' )", self::table_name(), $this->record_id, $this->record_type ), ARRAY_A );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT record_id FROM %i WHERE record_id = %d AND record_type = %s AND status IN ( 'new', 'error' )", self::table_name(), $this->record_id, $this->record_type ), ARRAY_A );
 
-		if ( empty( $results ) || ! is_array( $results ) ) {
-			return false;
-		}
-
-		return true;
+		return ! empty( $results );
 	}
 
 	public function save() {
@@ -226,15 +255,5 @@ abstract class WC_SellerLedger_Transaction {
 		return $wpdb->delete( self::table_name(), array( 'id' => $this->id ) );
 	}
 
-	abstract function root_path();
-
-	public function base_uri( $connection_id ) {
-		return 'connections/' . $connection_id . '/' . $this->root_path();
-	}
-
-	public function record_uri( $connection_id ) {
-		return $this->base_uri( $connection_id ) . '/' . $this->record_id;
-	}
-
-	abstract function add_note( $note );
+	abstract public function add_note( $note );
 }

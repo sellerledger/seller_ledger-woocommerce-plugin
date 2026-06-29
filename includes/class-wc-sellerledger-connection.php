@@ -8,6 +8,7 @@ class WC_SellerLedger_Connection {
 	private $connection_id;
 
 	const CONNECTION_ID_OPTION = 'sellerledger-connection-id';
+	const ERROR_TRANSIENT      = 'sellerledger_connection_error';
 
 	public static function init( $token ) {
 		$instance = new self( $token );
@@ -23,7 +24,7 @@ class WC_SellerLedger_Connection {
 		$this->token = $token;
 	}
 
-	public function getConnectionID() {
+	public function get_connection_id() {
 		if ( is_null( $this->connection_id ) ) {
 			$this->connection_id = get_option( self::CONNECTION_ID_OPTION );
 		}
@@ -31,10 +32,15 @@ class WC_SellerLedger_Connection {
 		return $this->connection_id;
 	}
 
-	public function setConnectionID( $id ) {
-		add_option( self::CONNECTION_ID_OPTION, $id );
+	public function set_connection_id( $id ) {
+		update_option( self::CONNECTION_ID_OPTION, $id );
 		$this->connection_id = $id;
 		return $id;
+	}
+
+	public function has_connection() {
+		$id = $this->get_connection_id();
+		return ! empty( $id );
 	}
 
 	public function create() {
@@ -42,11 +48,11 @@ class WC_SellerLedger_Connection {
 			return false;
 		}
 
-		if ( ! is_null( $this->getConnectionID() ) && $this->getConnectionID() != '' ) {
+		if ( $this->has_connection() ) {
 			return false;
 		}
 
-		if ( get_transient( 'sellerledger_creating_connection' ) == 'yes' ) {
+		if ( 'yes' === get_transient( 'sellerledger_creating_connection' ) ) {
 			return false;
 		}
 
@@ -58,40 +64,40 @@ class WC_SellerLedger_Connection {
 		);
 
 		try {
-			$client   = SellerLedger\Client::withApiKey( $this->token->get() );
+			$client   = WC_SellerLedger_Integration::api_client( $this->token->get() );
 			$response = $client->createConnection( $details );
-			$this->setConnectionID( $response->id );
+			$this->set_connection_id( $response->id );
+			delete_transient( self::ERROR_TRANSIENT );
 		} catch ( SellerLedger\Exception $e ) {
-			SellerLedger()->log( 'ERROR CREATING SELLERLEDGER CONNECTION' );
+			$this->record_error( $e );
+		} catch ( \Throwable $e ) {
+			SellerLedger()->log( 'SELLERLEDGER createConnection FAILED: ' . $e->getMessage() );
 		}
 
 		delete_transient( 'sellerledger_creating_connection' );
+
+		return $this->has_connection();
 	}
 
-	public function valid() {
-		return ! $this->invalid();
+	public static function last_error() {
+		$error = get_transient( self::ERROR_TRANSIENT );
+		return is_array( $error ) ? $error : null;
 	}
 
-	public function invalid() {
-		if ( is_null( $this->getConnectionID() ) ) {
-			return true;
-		}
-
-		$result = $this->verify();
-		return ! $result;
+	public static function clear_error() {
+		delete_transient( self::ERROR_TRANSIENT );
 	}
 
-	private function verify() {
-		if ( is_null( $this->getConnectionID() ) || $this->getConnectionID() == '' ) {
-			return false;
-		}
+	private function record_error( $exception ) {
+		set_transient(
+			self::ERROR_TRANSIENT,
+			array(
+				'code'    => $exception->getCode(),
+				'message' => $exception->getMessage(),
+			),
+			60
+		);
 
-		try {
-			$client   = SellerLedger\Client::withApiKey( $this->token->get() );
-			$response = $client->getBusiness();
-			return true;
-		} catch ( SellerLedger\Exception $e ) {
-			return false;
-		}
+		SellerLedger()->log( 'SELLERLEDGER CONNECTION ERROR: ' . $exception->getMessage() );
 	}
 }

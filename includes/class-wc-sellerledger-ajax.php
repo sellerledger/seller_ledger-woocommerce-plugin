@@ -1,9 +1,8 @@
 <?php
 /**
- * Seller Ledger AJAX actions
+ * Seller Ledger AJAX actions.
  *
  * @package WC_SellerLedger_Integration
- * @author SellerLedger
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -19,26 +18,37 @@ class WC_SellerLedger_AJAX {
 	public function run_transaction_sync() {
 		check_admin_referer( 'sellerledger-transaction-sync', 'security' );
 
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( array( 'error' => __( 'You are not allowed to do that.', 'seller-ledger' ) ), 403 );
+		}
+
 		$format     = 'Y-m-d';
-		$start_date = current_time( $format );
-		$end_date   = current_time( $format );
+		$start_date = $this->parse_date( 'start_date', $format );
+		$end_date   = $this->parse_date( 'end_date', $format );
 
-		if ( isset( $_POST['start_date'] ) ) {
-			$start_date = DateTime::createFromFormat( $format, sanitize_text_field( $_POST['start_date'] ) );
+		try {
+			SellerLedger()->transaction_sync->schedule_backfill( $start_date, $end_date );
+		} catch ( Exception $e ) {
+			wp_send_json_error( array( 'error' => $e->getMessage() ) );
 		}
 
-		if ( isset( $_POST['end_date'] ) ) {
-			$end_date = DateTime::createFromFormat( $format, sanitize_text_field( $_POST['end_date'] ) );
-		}
-
-		$record_count = SellerLedger()->transaction_sync->backfill( $start_date->format( $format ), $end_date->format( $format ) );
-
-		$response = array(
-			'count' => $record_count,
-			'error' => null,
+		wp_send_json_success(
+			array(
+				'message' => __( 'Import started. Transactions will appear in the queue as they are processed.', 'seller-ledger' ),
+			)
 		);
+	}
 
-		wp_send_json( $response );
+	private function parse_date( $key, $format ) {
+		// Nonce is verified in run_transaction_sync() before this is called.
+		if ( empty( $_POST[ $key ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			return current_time( $format );
+		}
+
+		$raw  = sanitize_text_field( wp_unslash( $_POST[ $key ] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$date = DateTime::createFromFormat( $format, $raw );
+
+		return $date instanceof DateTime ? $date->format( $format ) : current_time( $format );
 	}
 }
 
