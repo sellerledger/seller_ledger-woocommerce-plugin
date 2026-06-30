@@ -8,11 +8,19 @@ class WC_SellerLedger_Tax_Calculator {
 	const RATE_ID_OPTION = 'sellerledger-tax-rate-id';
 	const CACHE_TTL      = 900;
 
+	const ORDER_EDIT_ACTIONS = array(
+		'woocommerce_add_order_fee',
+		'woocommerce_add_coupon_discount',
+		'woocommerce_remove_order_coupon',
+		'woocommerce_remove_order_item',
+	);
+
 	private $integration;
-	private $result     = null;
-	private $primed     = false;
-	private $api_failed = false;
-	private $collecting = false;
+	private $result        = null;
+	private $primed        = false;
+	private $api_failed    = false;
+	private $collecting    = false;
+	private $recalculating = false;
 
 	public static function init( $integration ) {
 		$instance = new self( $integration );
@@ -42,6 +50,7 @@ class WC_SellerLedger_Tax_Calculator {
 
 		add_action( 'woocommerce_before_calculate_totals', array( $this, 'prime' ), 5, 1 );
 		add_action( 'woocommerce_order_before_calculate_taxes', array( $this, 'prime_order' ), 5, 2 );
+		add_action( 'woocommerce_order_after_calculate_totals', array( $this, 'recalculate_admin_order_tax' ), 10, 2 );
 		add_filter( 'woocommerce_find_rates', array( $this, 'inject_rate' ), 100, 2 );
 		add_action( 'woocommerce_checkout_create_order', array( $this, 'stamp_order' ), 10, 2 );
 	}
@@ -145,6 +154,33 @@ class WC_SellerLedger_Tax_Calculator {
 
 		$cache_key    = 'sl_tax_order_' . md5( wp_json_encode( array( $order->get_id(), $country, $state, $zip, $params['total_amount'] ?? '' ) ) );
 		$this->result = $this->lookup_params( $params, $cache_key );
+	}
+
+	public function recalculate_admin_order_tax( $and_taxes, $order ) {
+		// WooCommerce recalculates an order's totals without taxes when items,
+		// fees, or coupons are edited in the admin. Re-run the tax calculation
+		// (which fires prime_order -> find_rates) so the tax updates live,
+		// instead of waiting for the merchant to click Recalculate.
+		if ( $and_taxes || $this->recalculating || ! $this->is_order_edit_request() ) {
+			return;
+		}
+
+		$this->recalculating = true;
+		$order->calculate_taxes();
+		$order->calculate_totals( false );
+		$this->recalculating = false;
+	}
+
+	private function is_order_edit_request() {
+		if ( ! function_exists( 'wp_doing_ajax' ) || ! wp_doing_ajax() ) {
+			return false;
+		}
+
+		// WooCommerce verifies the order-item nonce before this runs; we only
+		// read the action name to scope live recalculation to order edits.
+		$action = isset( $_REQUEST['action'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		return in_array( $action, self::ORDER_EDIT_ACTIONS, true );
 	}
 
 	private function lookup( $request ) {
