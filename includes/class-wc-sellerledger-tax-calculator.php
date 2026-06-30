@@ -41,6 +41,7 @@ class WC_SellerLedger_Tax_Calculator {
 		}
 
 		add_action( 'woocommerce_before_calculate_totals', array( $this, 'prime' ), 5, 1 );
+		add_action( 'woocommerce_order_before_calculate_taxes', array( $this, 'prime_order' ), 5, 2 );
 		add_filter( 'woocommerce_find_rates', array( $this, 'inject_rate' ), 100, 2 );
 		add_action( 'woocommerce_checkout_create_order', array( $this, 'stamp_order' ), 10, 2 );
 	}
@@ -94,9 +95,57 @@ class WC_SellerLedger_Tax_Calculator {
 		$this->result     = $this->lookup( $request );
 	}
 
+	public function prime_order( $args, $order ) {
+		$this->result     = null;
+		$this->primed     = false;
+		$this->api_failed = false;
+		$this->collecting = false;
+
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+
+		$country = ! empty( $args['country'] ) ? $args['country'] : $order->get_shipping_country();
+		$state   = ! empty( $args['state'] ) ? $args['state'] : $order->get_shipping_state();
+		$zip     = ! empty( $args['postcode'] ) ? $args['postcode'] : $order->get_shipping_postcode();
+
+		if ( 'US' !== $country || '' === $state || '' === $zip ) {
+			return;
+		}
+
+		if ( ! $this->integration->nexus_reachable() ) {
+			return;
+		}
+
+		$this->primed = true;
+
+		$nexus = $this->integration->nexus_states();
+		if ( empty( $nexus ) || ! isset( $nexus[ $state ] ) ) {
+			return;
+		}
+
+		$this->collecting = true;
+
+		$params = WC_SellerLedger_Transaction_Order::build( array( 'record_id' => $order->get_id() ) )->to_params();
+		if ( ! is_array( $params ) ) {
+			return;
+		}
+
+		$params['ship_to_country_code'] = $country;
+		$params['ship_to_state']        = $state;
+		$params['ship_to_zip']          = $zip;
+		$params['tax_amount']           = 0;
+
+		$cache_key    = 'sl_tax_order_' . md5( wp_json_encode( array( $order->get_id(), $country, $state, $zip, $params['total_amount'] ?? '' ) ) );
+		$this->result = $this->lookup_params( $params, $cache_key );
+	}
+
 	private function lookup( $request ) {
-		$key    = $request->cache_key();
-		$cached = get_transient( $key );
+		return $this->lookup_params( $request->to_params(), $request->cache_key() );
+	}
+
+	private function lookup_params( $params, $cache_key ) {
+		$cached = get_transient( $cache_key );
 
 		if ( false !== $cached ) {
 			return $cached;
@@ -105,14 +154,14 @@ class WC_SellerLedger_Tax_Calculator {
 		try {
 			$client = WC_SellerLedger_Integration::api_client( $this->integration->token->get() );
 			$tax    = $client->calculateSalesTax(
-				$request->to_params(),
+				$params,
 				array(
 					'timeout'         => 5,
 					'connect_timeout' => 3,
 				)
 			);
 
-			set_transient( $key, $tax, self::CACHE_TTL );
+			set_transient( $cache_key, $tax, self::CACHE_TTL );
 			return $tax;
 		} catch ( SellerLedger\Exception $e ) {
 			$this->api_failed = true;
