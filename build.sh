@@ -24,25 +24,15 @@ SCOPER="${BUILD}/php-scoper.phar"
 rm -rf "${BUILD}" "${DIST}"
 mkdir -p "${STAGE}" "${DIST}" "${DEPS}"
 
-# 1. Copy tracked source (no vendor/dev/tooling) into the staged plugin.
-rsync -a --exclude-from=- "${ROOT}/" "${STAGE}/" <<'EXCLUDES'
-.git/
-.github/
-build/
-dist/
-tests/
-node_modules/
-vendor/
-assets/
-composer.json
-composer.lock
-phpcs.xml.dist
-phpunit.xml.dist
-scoper.inc.php
-build.sh
-.gitignore
-CLAUDE.md
-EXCLUDES
+# 1. Export tracked source into the staged plugin. git archive naturally omits
+# gitignored paths (vendor/, build/, dist/, node_modules/, local env files); the
+# rm below drops tracked dev tooling, tests, and SVN assets that must not ship.
+git -C "${ROOT}" archive --format=tar HEAD | tar -x -C "${STAGE}"
+( cd "${STAGE}" && rm -rf \
+	.github tests assets \
+	composer.json composer.lock phpcs.xml.dist phpunit.xml.dist \
+	scoper.inc.php build.sh .gitignore CLAUDE.md \
+	.wp-env.json .wp-env.override.json .wp-env.override.json.example .claude )
 
 # 2. Install production dependencies in isolation. The lock is intentionally not
 # copied: in this isolated directory the local path repo for seller_ledger-php
@@ -67,8 +57,16 @@ cp "${DEPS}/composer.json" "${STAGE}/composer.json"
 ( cd "${STAGE}" && composer dump-autoload --no-dev --classmap-authoritative --no-interaction )
 rm -f "${STAGE}/composer.json"
 
-# 6. Zip it.
-( cd "${BUILD}" && zip -r -q "${DIST}/${SLUG}.zip" "${SLUG}" )
+# 5b. Strip stray dev files that bundled packages ship in their source.
+find "${STAGE}/vendor" -type d \( -name tests -o -name test -o -name .github -o -name docs \) -prune -exec rm -rf {} + 2>/dev/null || true
+find "${STAGE}/vendor" -type f \( -iname 'phpunit*.xml*' -o -name '.gitattributes' -o -name '.editorconfig' -o -name 'Makefile' \) -delete 2>/dev/null || true
+
+# 6. Zip it (zip CLI if present, otherwise Python's zipfile for portability).
+if command -v zip >/dev/null 2>&1; then
+	( cd "${BUILD}" && zip -r -q "${DIST}/${SLUG}.zip" "${SLUG}" )
+else
+	python3 -c "import shutil; shutil.make_archive('${DIST}/${SLUG}', 'zip', '${BUILD}', '${SLUG}')"
+fi
 
 echo "Built ${DIST}/${SLUG}.zip"
 echo "Reminder: upload assets/screenshot-*.png to the WordPress.org SVN assets/ directory, not the zip."
