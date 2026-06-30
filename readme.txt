@@ -103,8 +103,12 @@ don't need an accounting background to use it.
 
 = How are marketplace and processor payouts handled? =
 
-Payouts are recorded as transfers rather than income. When you also connect the receiving bank
-account, the matching deposits net out and don't inflate your Profit & Loss.
+Each payout is the net of the orders, selling fees, and refunds it covers, and Seller Ledger
+already records those individually as income and expenses. The payout itself is then booked as a
+transfer rather than new income, so nothing is counted twice. When you also connect the bank
+account that receives it, the deposit reconciles against the payout — so each bank deposit ties
+back to its payout, and the payout ties back to the underlying transactions. Your books reconcile
+end to end, and payouts never inflate your Profit & Loss.
 
 == Screenshots ==
 
