@@ -28,6 +28,11 @@ if ( ! $sellerledger_woo_active || version_compare( get_option( 'woocommerce_db_
 	return;
 }
 
+if ( ! file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	add_action( 'admin_notices', array( 'WC_SellerLedger', 'display_missing_dependencies_notice' ) );
+	return;
+}
+
 require __DIR__ . '/vendor/autoload.php';
 
 final class WC_SellerLedger {
@@ -100,6 +105,14 @@ final class WC_SellerLedger {
 		$notice = sprintf( __( '%1$sSeller Ledger has been disabled.%2$s This version of Seller Ledger requires WooCommerce %3$s or newer. Please install or update WooCommerce to version %3$s or newer.', 'seller-ledger' ), '<strong>', '</strong>', self::$minimum_woocommerce_version );
 
 		echo '<div class="error"><p>' . wp_kses( $notice, array( 'strong' => array() ) ) . '</p></div>';
+	}
+
+	public static function display_missing_dependencies_notice() {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
+
+		echo '<div class="error"><p>' . esc_html__( 'Seller Ledger could not load its bundled libraries. Please reinstall the plugin from a complete package.', 'seller-ledger' ) . '</p></div>';
 	}
 }
 
