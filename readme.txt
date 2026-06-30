@@ -110,8 +110,8 @@ account, the matching deposits net out and don't inflate your Profit & Loss.
 
 1. The Seller Ledger dashboard
 2. Connecting your store to Seller Ledger
-3. Real-time sales tax and the states you're collecting in
-4. Transaction sync history and on-demand import
+3. Sales tax nexus tracking across states
+4. Return-ready sales tax reports broken down by jurisdiction
 
 == Installation ==
 
