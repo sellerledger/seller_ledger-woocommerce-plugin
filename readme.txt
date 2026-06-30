@@ -8,36 +8,36 @@ Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Automated bookkeeping and real-time sales tax for WooCommerce. Sync your orders to Seller Ledger and collect accurate tax at checkout.
+Automated bookkeeping and sales tax for WooCommerce. Sync orders to Seller Ledger and automatically calculate and collect tax at checkout.
 
 == Description ==
 
 Tracking finances and preparing for taxes is a hassle for any business, but for eCommerce sellers it's a nightmare. **Seller Ledger** is simple, automated accounting built specifically for online and marketplace sellers — and this plugin connects your WooCommerce store to it.
 
-Once connected, your completed WooCommerce orders and refunds flow into Seller Ledger automatically, and you can calculate accurate, jurisdiction-level sales tax in real time at checkout.
+Once connected, your completed WooCommerce orders and refunds flow into Seller Ledger automatically, and you can calculate and collect jurisdiction-level sales tax in real time at checkout.
 
 = Automated bookkeeping =
 
 * Import orders, shipping, fees, and refunds and automatically sort them into the right accounting categories.
 * Real double-entry accounting under a simple interface — no accounting background required.
-* Monthly and annual Profit & Loss reports, updated in real time.
-* A ready-to-file Schedule C generated from your sales and expenses.
+* Monthly and annual Profit & Loss reports, regularly updated with current sales and expense data.
+* A Schedule C tax report generated from your sales and expense history.
 * Track inventory and cost of goods, and see your profit on every order.
 
 = Reconciliation across channels =
 
-* Consolidate WooCommerce alongside 30+ other marketplaces and storefronts into one set of books.
+* Consolidate WooCommerce alongside Amazon, eBay, Etsy, Shopify, Walmart, and other marketplaces into one set of books.
 * Orders, selling fees, refunds, and returned items are all tracked.
 * Marketplace and processor payouts are recorded as transfers, so when you also connect the bank account that receives them, deposits net cleanly and never inflate your Profit & Loss.
 
 = Bank and account connections =
 
-* Securely connect your bank and credit card accounts — more than 12,000 supported — to import transactions automatically and eliminate manual entry.
+* Securely connect most banks and credit card accounts to import transactions automatically and eliminate manual entry.
 * Connect your sales channels and payment processors (including PayPal) so everything reconciles in one place.
 
 = Sales tax: collection and reports =
 
-* **Collect the right tax at checkout.** This plugin uses Seller Ledger's sales tax engine to calculate accurate, jurisdiction-level tax — state, county, city, and special districts — in real time, based on the customer's shipping address and the states where you have nexus.
+* **Collect the right tax at checkout.** This plugin uses Seller Ledger's sales tax engine to calculate jurisdiction-level tax — state, county, city, and special districts — in real time, based on the customer's shipping address and the states where you have nexus.
 * **Economic nexus tracking.** Seller Ledger builds every state's economic-nexus thresholds into the software, shows you where you have nexus, and alerts you as you approach each threshold so you're never caught by surprise.
 * **Return-ready reports.** Your sales and tax collected are grouped by jurisdiction so that, when it's time to file, you have everything you need to remit and file your state returns.
 
@@ -48,7 +48,7 @@ Once connected, your completed WooCommerce orders and refunds flow into Seller L
 * Turn on real-time sales tax to calculate tax at checkout for the states where you have established nexus; other destinations are left untaxed.
 * See your connection status, sync history, and the states you're collecting in right from WooCommerce settings, and re-import historical orders on demand.
 
-Seller Ledger was built by a team with deep sales-tax experience, including veterans of TaxJar. Try it free for 30 days — only pay if you're happy.
+Seller Ledger was built by founders who ran product and engineering at TaxJar. Try it free for 30 days — only pay if you're happy.
 
 == External services ==
 
@@ -82,7 +82,7 @@ annual plan imports back to the start of the prior year.
 
 = Does this plugin calculate sales tax at checkout? =
 
-Yes. Enable real-time sales tax in the plugin settings and Seller Ledger calculates accurate,
+Yes. Enable real-time sales tax in the plugin settings and Seller Ledger calculates
 jurisdiction-level tax at checkout for the states where you have established nexus. Destinations
 where you don't have nexus are left untaxed.
 
