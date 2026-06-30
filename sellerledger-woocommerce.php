@@ -14,7 +14,7 @@
  * Text Domain: seller-ledger
  * Domain Path: /languages
  * License: GNU General Public License v2.0 or later
- * License URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  *
  * @package Seller_Ledger
  */

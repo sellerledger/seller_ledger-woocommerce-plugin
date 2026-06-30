@@ -196,6 +196,7 @@ abstract class WC_SellerLedger_Transaction {
 		$this->last_error = '';
 		$this->status     = 'complete';
 		$this->order->update_meta_data( 'sellerledger_sync', $this->updated_at );
+		$this->order->save_meta_data();
 		$this->save();
 	}
 
@@ -210,6 +211,7 @@ abstract class WC_SellerLedger_Transaction {
 		}
 
 		$this->order->update_meta_data( 'sellerledger_sync_error', $reason );
+		$this->order->save_meta_data();
 		$this->save();
 	}
 

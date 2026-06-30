@@ -86,6 +86,11 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 		public static function api_client( $token ) {
 			$client = SellerLedger\Client::withApiKey( $token );
 
+			// Bound every request so a slow or unreachable Seller Ledger can never
+			// hang a request (e.g. the nexus lookup during checkout).
+			$client->setApiConfig( 'connect_timeout', 5 );
+			$client->setApiConfig( 'timeout', 15 );
+
 			if ( self::api_url() !== untrailingslashit( self::$app_url ) ) {
 				$client->setApiConfig( 'base_uri', self::api_url() . '/v1/' );
 			}

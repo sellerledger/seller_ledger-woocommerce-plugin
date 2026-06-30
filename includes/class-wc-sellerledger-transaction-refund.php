@@ -15,9 +15,13 @@ class WC_SellerLedger_Transaction_Refund extends WC_SellerLedger_Transaction {
 	public function load() {
 		$order = wc_get_order( $this->record_id );
 		if ( $order instanceof WC_Order_Refund ) {
-			$this->order        = $order;
-			$this->parent_order = wc_get_order( $order->get_parent_id() );
-			$this->loaded       = true;
+			$parent_order = wc_get_order( $order->get_parent_id() );
+
+			if ( $parent_order instanceof WC_Order ) {
+				$this->order        = $order;
+				$this->parent_order = $parent_order;
+				$this->loaded       = true;
+			}
 		}
 
 		return $this;

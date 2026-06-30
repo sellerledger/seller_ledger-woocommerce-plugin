@@ -48,6 +48,12 @@ class WC_SellerLedger_Connection {
 			return false;
 		}
 
+		// Creating a connection is a blocking API call; never run it during a
+		// front-end page render.
+		if ( ! is_admin() && ! wp_doing_cron() && ! ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+			return false;
+		}
+
 		if ( $this->has_connection() ) {
 			return false;
 		}

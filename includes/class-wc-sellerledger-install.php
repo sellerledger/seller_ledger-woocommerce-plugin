@@ -37,7 +37,7 @@ class WC_SellerLedger_Install {
 
 	public static function uninstall() {
 		global $wpdb;
-		$wpdb->query( 'DROP TABLE IF EXISTS ' . $wpdb->prefix . 'sellerledger_queue' );
+		$wpdb->query( $wpdb->prepare( 'DROP TABLE IF EXISTS %i', $wpdb->prefix . 'sellerledger_queue' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		delete_option( 'sellerledger_version' );
 	}
 
