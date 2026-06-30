@@ -114,9 +114,13 @@ class WC_SellerLedger_Tax_Calculator {
 
 			set_transient( $key, $tax, self::CACHE_TTL );
 			return $tax;
+		} catch ( SellerLedger\Exception $e ) {
+			$this->api_failed = true;
+			WC_SellerLedger_Logger::warning( 'Sales tax calculation rejected: ' . $e->getMessage(), array( 'code' => $e->getCode() ) );
+			return null;
 		} catch ( \Throwable $e ) {
 			$this->api_failed = true;
-			SellerLedger()->log( 'SELLERLEDGER TAX CALCULATION FAILED: ' . $e->getMessage() );
+			WC_SellerLedger_Logger::error( 'Sales tax calculation failed: ' . $e->getMessage() );
 			return null;
 		}
 	}

@@ -198,6 +198,14 @@ abstract class WC_SellerLedger_Transaction {
 		$this->order->update_meta_data( 'sellerledger_sync', $this->updated_at );
 		$this->order->save_meta_data();
 		$this->save();
+
+		WC_SellerLedger_Logger::info(
+			'Synced ' . $this->record_type . ' #' . $this->record_id,
+			array(
+				'record_id' => $this->record_id,
+				'type'      => $this->record_type,
+			)
+		);
 	}
 
 	public function sync_fail( $reason ) {
@@ -213,6 +221,17 @@ abstract class WC_SellerLedger_Transaction {
 		$this->order->update_meta_data( 'sellerledger_sync_error', $reason );
 		$this->order->save_meta_data();
 		$this->save();
+
+		$context = array(
+			'record_id' => $this->record_id,
+			'type'      => $this->record_type,
+			'retry'     => $this->retry_count,
+		);
+		if ( 'failed' === $this->status ) {
+			WC_SellerLedger_Logger::error( 'Sync failed permanently: ' . $reason, $context );
+		} else {
+			WC_SellerLedger_Logger::warning( 'Sync failed, will retry: ' . $reason, $context );
+		}
 	}
 
 	public function is_queued() {

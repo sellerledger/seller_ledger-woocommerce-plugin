@@ -103,9 +103,7 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 				$data = wp_json_encode( $data );
 			}
 
-			if ( function_exists( 'wc_get_logger' ) ) {
-				wc_get_logger()->error( $data, array( 'source' => 'seller-ledger' ) );
-			}
+			WC_SellerLedger_Logger::error( $data );
 		}
 
 		public function __construct() {

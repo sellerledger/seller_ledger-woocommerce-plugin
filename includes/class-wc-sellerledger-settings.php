@@ -35,6 +35,10 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 			return 'yes' === ( self::all()['realtime_tax'] ?? 'no' );
 		}
 
+		public static function debug_logging_enabled() {
+			return 'yes' === ( self::all()['debug_logging'] ?? 'no' );
+		}
+
 		public static function all() {
 			return WC_Admin_Settings::get_option( self::get_stored_settings_identifier() );
 		}
@@ -62,7 +66,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 				return wc_clean( $value );
 			}
 
-			if ( 'realtime_tax' === $setting_name ) {
+			if ( in_array( $setting_name, array( 'realtime_tax', 'debug_logging' ), true ) ) {
 				return 'yes' === $value ? 'yes' : 'no';
 			}
 
@@ -126,6 +130,17 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 			);
 		}
 
+		public static function get_debug_logging_field() {
+			return array(
+				'title'   => __( 'Debug logging', 'seller-ledger' ),
+				'type'    => 'checkbox',
+				'desc'    => esc_html__( 'Log detailed sync and tax-calculation activity for troubleshooting. Sync and tax failures are always logged.', 'seller-ledger' )
+					. ' <a href="' . esc_url( admin_url( 'admin.php?page=wc-status&tab=logs' ) ) . '">' . esc_html__( 'View logs', 'seller-ledger' ) . '</a>',
+				'default' => 'no',
+				'id'      => 'woocommerce_sellerledger-integration_settings[debug_logging]',
+			);
+		}
+
 		public static function get_section_split() {
 			return array(
 				'type' => 'sectionend',
@@ -145,6 +160,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 			if ( 'connected' === $state ) {
 				$settings[] = self::get_api_token_field( true );
 				$settings[] = self::get_realtime_tax_field();
+				$settings[] = self::get_debug_logging_field();
 			} else {
 				$settings[] = self::get_api_token_field();
 			}

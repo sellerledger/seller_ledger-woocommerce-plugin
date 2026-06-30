@@ -2,7 +2,7 @@
 Contributors: sellerledger
 Tags: woocommerce, accounting, bookkeeping, sales tax, ecommerce
 Requires at least: 6.5
-Tested up to: 6.7
+Tested up to: 7.0
 Stable tag: 0.1.0
 Requires PHP: 8.0
 License: GPLv2 or later

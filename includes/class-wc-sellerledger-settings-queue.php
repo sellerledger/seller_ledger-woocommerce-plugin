@@ -8,6 +8,8 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 }
 
 class WC_SellerLedger_Settings_Queue extends WP_List_Table {
+	private $orders = array();
+
 	public function __construct() {
 		parent::__construct(
 			array(
@@ -45,7 +47,7 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
 				}
 				return esc_html( ucfirst( $status ) );
 			case 'order_status':
-				$wc_order = wc_get_order( $record->record_id );
+				$wc_order = isset( $this->orders[ $record->record_id ] ) ? $this->orders[ $record->record_id ] : null;
 				return $wc_order ? esc_html( ucfirst( $wc_order->get_status() ) ) : '';
 			default:
 				return esc_html( $record->$column_name );
@@ -67,6 +69,21 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
 		);
 		$this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
 		$this->items           = $records;
+
+		$this->orders = array();
+		$ids          = array_filter( array_map( 'intval', wp_list_pluck( $records, 'record_id' ) ) );
+		if ( ! empty( $ids ) ) {
+			$orders = wc_get_orders(
+				array(
+					'limit'   => -1,
+					'include' => $ids,
+					'type'    => array( 'shop_order', 'shop_order_refund' ),
+				)
+			);
+			foreach ( $orders as $order ) {
+				$this->orders[ $order->get_id() ] = $order;
+			}
+		}
 	}
 
 	public function get_columns() {

@@ -10,7 +10,7 @@
  * Requires PHP: 8.0
  * Requires Plugins: woocommerce
  * WC requires at least: 8.8
- * WC tested up to: 9.3
+ * WC tested up to: 10.9
  * Text Domain: seller-ledger
  * Domain Path: /languages
  * License: GNU General Public License v2.0 or later
@@ -58,6 +58,7 @@ final class WC_SellerLedger {
 
 	public function init() {
 		if ( class_exists( 'WC_Integration' ) ) {
+			include_once 'includes/class-wc-sellerledger-logger.php';
 			include_once 'includes/class-wc-sellerledger-business.php';
 			include_once 'includes/class-wc-sellerledger-connection.php';
 			include_once 'includes/class-wc-sellerledger-token.php';
