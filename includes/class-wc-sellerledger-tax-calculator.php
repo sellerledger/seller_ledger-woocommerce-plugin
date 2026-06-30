@@ -152,7 +152,7 @@ class WC_SellerLedger_Tax_Calculator {
 		$params['ship_to_zip']          = $zip;
 		$params['tax_amount']           = 0;
 
-		$cache_key    = 'sl_tax_order_' . md5( wp_json_encode( array( $order->get_id(), $country, $state, $zip, $params['total_amount'] ?? '' ) ) );
+		$cache_key    = 'sl_tax_order_' . md5( wp_json_encode( array( $order->get_id(), $country, $state, $zip, $params['items_subtotal'] ?? '', $params['shipping_amount'] ?? '', $params['discount_amount'] ?? '', $params['total_amount'] ?? '' ) ) );
 		$this->result = $this->lookup_params( $params, $cache_key );
 	}
 
@@ -166,9 +166,12 @@ class WC_SellerLedger_Tax_Calculator {
 		}
 
 		$this->recalculating = true;
-		$order->calculate_taxes();
-		$order->calculate_totals( false );
-		$this->recalculating = false;
+		try {
+			$order->calculate_taxes();
+			$order->calculate_totals( false );
+		} finally {
+			$this->recalculating = false;
+		}
 	}
 
 	private function is_order_edit_request() {
@@ -236,7 +239,7 @@ class WC_SellerLedger_Tax_Calculator {
 
 		return array(
 			$this->rate_id() => array(
-				'rate'     => (string) ( (float) $this->result->rate * 100 ),
+				'rate'     => (string) round( (float) $this->result->rate * 100, 4 ),
 				'label'    => __( 'Sales Tax', 'seller-ledger' ),
 				'shipping' => empty( $this->result->freight_taxable ) ? 'no' : 'yes',
 				'compound' => 'no',

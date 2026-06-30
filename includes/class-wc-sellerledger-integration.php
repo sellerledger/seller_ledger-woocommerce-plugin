@@ -125,16 +125,28 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 		}
 
 		public function load_admin_assets( $hook_suffix ) {
-			if ( 'woocommerce_page_wc-settings' !== $hook_suffix ) {
+			$is_settings = ( 'woocommerce_page_wc-settings' === $hook_suffix );
+
+			$screen   = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+			$is_order = $screen && in_array( $screen->id, array( 'shop_order', 'woocommerce_page_wc-orders' ), true );
+
+			if ( ! $is_settings && ! $is_order ) {
 				return;
 			}
 
+			// The status colors (sl-status-*) are used both in the settings panel
+			// and in the per-order status meta box, so the stylesheet loads on both.
 			wp_enqueue_style(
 				'wc-sellerledger-admin',
 				plugin_dir_url( __FILE__ ) . 'css/wc-sellerledger-admin.css',
 				array(),
 				WC_SellerLedger::$version
 			);
+
+			// The import/sync script is only needed on the settings screen.
+			if ( ! $is_settings ) {
+				return;
+			}
 
 			wp_register_script(
 				'wc-sellerledger-admin',

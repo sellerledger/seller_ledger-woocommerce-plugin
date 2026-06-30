@@ -153,7 +153,9 @@ abstract class WC_SellerLedger_Transaction {
 
 	private static function is_local_pickup( $order ) {
 		foreach ( $order->get_shipping_methods() as $method ) {
-			if ( 'local_pickup' === $method->get_method_id() ) {
+			// 'local_pickup' is the classic method; 'pickup_location' is the
+			// Cart/Checkout Blocks local-pickup method.
+			if ( in_array( $method->get_method_id(), array( 'local_pickup', 'pickup_location' ), true ) ) {
 				return true;
 			}
 		}

@@ -21,9 +21,11 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$sellerledger_active_plugins = (array) get_option( 'active_plugins', array() );
-$sellerledger_woo_active     = in_array( 'woocommerce/woocommerce.php', $sellerledger_active_plugins, true );
-if ( ! $sellerledger_woo_active || version_compare( get_option( 'woocommerce_db_version' ), WC_SellerLedger::$minimum_woocommerce_version, '<' ) ) {
+// woocommerce_db_version is set whenever WooCommerce is active (single-site or
+// network), so this also covers the WooCommerce-inactive case without the
+// multisite-unsafe active_plugins lookup. WP enforces activation order via the
+// Requires Plugins header.
+if ( version_compare( (string) get_option( 'woocommerce_db_version' ), WC_SellerLedger::$minimum_woocommerce_version, '<' ) ) {
 	add_action( 'admin_notices', 'WC_SellerLedger::display_inactive_notice' );
 	return;
 }
@@ -91,7 +93,7 @@ final class WC_SellerLedger {
 	}
 
 	public static function plugin_registration_hook() {
-		if ( ! class_exists( 'Woocommerce' ) ) {
+		if ( ! class_exists( 'WooCommerce' ) ) {
 			exit( '<strong>Please activate Woocommerce before activating SellerLedger.</strong>' );
 		}
 	}
