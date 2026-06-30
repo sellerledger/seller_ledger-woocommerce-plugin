@@ -105,9 +105,16 @@ class WC_SellerLedger_Tax_Calculator {
 			return;
 		}
 
-		$country = ! empty( $args['country'] ) ? $args['country'] : $order->get_shipping_country();
-		$state   = ! empty( $args['state'] ) ? $args['state'] : $order->get_shipping_state();
-		$zip     = ! empty( $args['postcode'] ) ? $args['postcode'] : $order->get_shipping_postcode();
+		if ( ! empty( $args['country'] ) && ! empty( $args['state'] ) && ! empty( $args['postcode'] ) ) {
+			$country = $args['country'];
+			$state   = $args['state'];
+			$zip     = $args['postcode'];
+		} else {
+			$ship    = WC_SellerLedger_Transaction::ship_to( $order );
+			$country = $ship['country'];
+			$state   = $ship['state'];
+			$zip     = $ship['zip'];
+		}
 
 		if ( 'US' !== $country || '' === $state || '' === $zip ) {
 			return;

@@ -131,6 +131,11 @@ abstract class WC_SellerLedger_Transaction {
 	}
 
 	public static function ship_to( $order ) {
+		// Local pickup is taxed at the store's location, not the customer's.
+		if ( self::is_local_pickup( $order ) ) {
+			return self::store_address();
+		}
+
 		if ( '' !== $order->get_shipping_country() ) {
 			return array(
 				'country' => $order->get_shipping_country(),
@@ -143,6 +148,24 @@ abstract class WC_SellerLedger_Transaction {
 			'country' => $order->get_billing_country(),
 			'state'   => $order->get_billing_state(),
 			'zip'     => $order->get_billing_postcode(),
+		);
+	}
+
+	private static function is_local_pickup( $order ) {
+		foreach ( $order->get_shipping_methods() as $method ) {
+			if ( 'local_pickup' === $method->get_method_id() ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static function store_address() {
+		return array(
+			'country' => WC()->countries->get_base_country(),
+			'state'   => WC()->countries->get_base_state(),
+			'zip'     => WC()->countries->get_base_postcode(),
 		);
 	}
 
