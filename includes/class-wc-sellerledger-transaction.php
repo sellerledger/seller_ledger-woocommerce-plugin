@@ -170,20 +170,30 @@ abstract class WC_SellerLedger_Transaction {
 
 		foreach ( $this->order->get_items( array( 'line_item', 'fee' ) ) as $item ) {
 			if ( $item instanceof WC_Order_Item_Fee ) {
-				$data[] = array(
-					'product_name' => $item->get_name(),
-					'quantity'     => $item->get_quantity(),
-					'total_amount' => $item->get_amount(),
-					'item_amount'  => $item->get_amount(),
-				);
-			} else {
-				$product = $item->get_product();
+				$amount = (float) $item->get_amount();
+				$tax    = (float) $item->get_total_tax();
 
 				$data[] = array(
-					'product_name' => $product->get_name(),
-					'quantity'     => $item->get_quantity(),
-					'total_amount' => $item->get_total(),
-					'item_amount'  => $item->get_subtotal(),
+					'product_name'    => $item->get_name(),
+					'quantity'        => 1,
+					'item_amount'     => round( $amount, 2 ),
+					'discount_amount' => 0,
+					'tax_amount'      => round( $tax, 2 ),
+					'total_amount'    => round( $amount + $tax, 2 ),
+				);
+			} else {
+				$product  = $item->get_product();
+				$subtotal = (float) $item->get_subtotal();
+				$total    = (float) $item->get_total();
+				$tax      = (float) $item->get_total_tax();
+
+				$data[] = array(
+					'product_name'    => $product ? $product->get_name() : $item->get_name(),
+					'quantity'        => $item->get_quantity(),
+					'item_amount'     => round( $subtotal, 2 ),
+					'discount_amount' => round( $subtotal - $total, 2 ),
+					'tax_amount'      => round( $tax, 2 ),
+					'total_amount'    => round( $total + $tax, 2 ),
 				);
 			}
 		}
