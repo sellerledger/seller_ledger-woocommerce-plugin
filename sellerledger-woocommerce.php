@@ -1,87 +1,125 @@
 <?php
 /**
-* Plugin Name: Seller Ledger
-* Plugin URI: http://github.com/sellerledger/seller_ledger-woocommerce-plugin
-* Description: Seller Ledger's Woocommerce integration
-* Author: Seller Ledger
-* Version: 0.0.3
-* Author URI: https://www.sellerledger.com
-* @package Seller Ledger
-* @version 0.0.3
-* License: GNU General Public License v2.0 or later
-* License URI: http://www.gnu.org/licenses/gpl-2.0.html
-*/
+ * Plugin Name: Seller Ledger
+ * Plugin URI: https://github.com/sellerledger/seller_ledger-woocommerce-plugin
+ * Description: Sync your WooCommerce orders and refunds to Seller Ledger and calculate sales tax at checkout.
+ * Author: Seller Ledger
+ * Author URI: https://www.sellerledger.com
+ * Version: 0.1.0
+ * Requires at least: 6.5
+ * Requires PHP: 8.0
+ * Requires Plugins: woocommerce
+ * WC requires at least: 8.8
+ * WC tested up to: 10.9
+ * Text Domain: seller-ledger
+ * Domain Path: /languages
+ * License: GNU General Public License v2.0 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ *
+ * @package Seller_Ledger
+ */
 
-defined( "ABSPATH" ) || exit;
+defined( 'ABSPATH' ) || exit;
 
-$active_plugins = (array) get_option( "active_plugins", array() );
-$woo_active = in_array( "woocommerce/woocommerce.php", $active_plugins );
-if ( !$woo_active || version_compare( get_option( "woocommerce_db_version" ), WC_SellerLedger::$minimum_woocommerce_version, "<" ) ) {
-  add_action( "admin_notices", "WC_SellerLedger::display_inactive_notice" );
-  return;
+// woocommerce_db_version is set whenever WooCommerce is active (single-site or
+// network), so this also covers the WooCommerce-inactive case without the
+// multisite-unsafe active_plugins lookup. WP enforces activation order via the
+// Requires Plugins header.
+if ( version_compare( (string) get_option( 'woocommerce_db_version' ), WC_SellerLedger::$minimum_woocommerce_version, '<' ) ) {
+	add_action( 'admin_notices', 'WC_SellerLedger::display_inactive_notice' );
+	return;
+}
+
+if ( ! file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	add_action( 'admin_notices', array( 'WC_SellerLedger', 'display_missing_dependencies_notice' ) );
+	return;
 }
 
 require __DIR__ . '/vendor/autoload.php';
 
 final class WC_SellerLedger {
 
-  public static $version = "0.0.1";
-  public static $minimum_woocommerce_version = "8.8.0";
+	public static $version                     = '0.1.0';
+	public static $minimum_woocommerce_version = '8.8.0';
 
-  public function __construct() {
-    add_action( "plugins_loaded", array( $this, "init" ) );
-    register_activation_hook( __FILE__, array( __CLASS__, "plugin_registration_hook" ) );
-  }
+	public function __construct() {
+		add_action( 'plugins_loaded', array( $this, 'init' ) );
+		add_action( 'before_woocommerce_init', array( __CLASS__, 'declare_compatibility' ) );
+		register_activation_hook( __FILE__, array( __CLASS__, 'plugin_registration_hook' ) );
+		register_deactivation_hook( __FILE__, array( __CLASS__, 'deactivate' ) );
+	}
 
-  public function init() {
-    if ( class_exists( "WC_Integration" ) ) {
-      include_once "includes/class-wc-sellerledger-business.php";
-      include_once "includes/class-wc-sellerledger-connection.php";
-      include_once "includes/class-wc-sellerledger-token.php";
-      include_once "includes/class-wc-sellerledger-integration.php";
-      include_once "includes/class-wc-sellerledger-settings.php";
-      include_once "includes/class-wc-sellerledger-settings-queue.php";
-      include_once "includes/class-wc-sellerledger-settings-backfill.php";
-      include_once "includes/class-wc-sellerledger-ajax.php";
-      include_once "includes/class-wc-sellerledger-install.php";
-      include_once "includes/class-wc-sellerledger-transaction.php";
-      include_once "includes/class-wc-sellerledger-transaction-order.php";
-      include_once "includes/class-wc-sellerledger-transaction-refund.php";
-      include_once "includes/class-wc-sellerledger-transaction-queries.php";
-      include_once "includes/class-wc-sellerledger-transaction-sync.php";
+	public static function declare_compatibility() {
+		if ( ! class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+			return;
+		}
 
-      add_action( "woocommerce_integrations_init", array( $this, "add_integration" ), 20 );
-    }
-  }
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, true );
+	}
 
-  public function add_integration() {
-    SellerLedger();
-  }
+	public static function deactivate() {
+		include_once __DIR__ . '/includes/class-wc-sellerledger-transaction-sync.php';
+		WC_SellerLedger_Transaction_Sync::unschedule();
+	}
 
-  public static function plugin_registration_hook() {
-    if ( !class_exists( "Woocommerce" ) ) {
-      exit( "<strong>Please activate Woocommerce before activating SellerLedger.</strong>" );
-    }
-  }
+	public function init() {
+		if ( class_exists( 'WC_Integration' ) ) {
+			include_once 'includes/class-wc-sellerledger-logger.php';
+			include_once 'includes/class-wc-sellerledger-business.php';
+			include_once 'includes/class-wc-sellerledger-connection.php';
+			include_once 'includes/class-wc-sellerledger-token.php';
+			include_once 'includes/class-wc-sellerledger-integration.php';
+			include_once 'includes/class-wc-sellerledger-settings.php';
+			include_once 'includes/class-wc-sellerledger-settings-queue.php';
+			include_once 'includes/class-wc-sellerledger-settings-backfill.php';
+			include_once 'includes/class-wc-sellerledger-ajax.php';
+			include_once 'includes/class-wc-sellerledger-install.php';
+			include_once 'includes/class-wc-sellerledger-transaction.php';
+			include_once 'includes/class-wc-sellerledger-transaction-order.php';
+			include_once 'includes/class-wc-sellerledger-transaction-refund.php';
+			include_once 'includes/class-wc-sellerledger-transaction-queries.php';
+			include_once 'includes/class-wc-sellerledger-transaction-sync.php';
+			include_once 'includes/class-wc-sellerledger-cart-tax-request.php';
+			include_once 'includes/class-wc-sellerledger-tax-calculator.php';
+			include_once 'includes/class-wc-sellerledger-order-status.php';
 
-  public static function display_inactive_notice() {
-    if ( !current_user_can( "activate_plugins" ) ) {
-      return;
-    }
+			add_action( 'woocommerce_integrations_init', array( $this, 'add_integration' ), 20 );
+		}
+	}
 
-    /* translators: %s: HTML <strong> tags and Woocommerce version number */
-    $notice = sprintf( __( "%1\$1sSeller Ledger has been disabled.%2\$2s This version of Seller Ledger requires WooCommerce %3\$3s or newer. Please install or update WooCommerce to version %3\$3s or newer.", "wc-sellerledger" ), "<strong>", "</strong>", self::$minimum_woocommerce_version, self::$minimum_woocommerce_version );
+	public function add_integration() {
+		SellerLedger();
+	}
 
-    ?>
-      <div class="error">
-        <p><?php echo esc_html($notice); ?></p>
-      </div>
-    <?php
-  }
+	public static function plugin_registration_hook() {
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			exit( '<strong>Please activate Woocommerce before activating SellerLedger.</strong>' );
+		}
+	}
+
+	public static function display_inactive_notice() {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
+
+		/* translators: 1: opening strong tag, 2: closing strong tag, 3: minimum WooCommerce version */
+		$notice = sprintf( __( '%1$sSeller Ledger has been disabled.%2$s This version of Seller Ledger requires WooCommerce %3$s or newer. Please install or update WooCommerce to version %3$s or newer.', 'seller-ledger' ), '<strong>', '</strong>', self::$minimum_woocommerce_version );
+
+		echo '<div class="error"><p>' . wp_kses( $notice, array( 'strong' => array() ) ) . '</p></div>';
+	}
+
+	public static function display_missing_dependencies_notice() {
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
+
+		echo '<div class="error"><p>' . esc_html__( 'Seller Ledger could not load its bundled libraries. Please reinstall the plugin from a complete package.', 'seller-ledger' ) . '</p></div>';
+	}
 }
 
-$WC_SellerLedger = new WC_SellerLedger( __FILE__ );
+new WC_SellerLedger();
 
 function SellerLedger() {
-  return WC_SellerLedger_Integration::instance();
+	return WC_SellerLedger_Integration::instance();
 }

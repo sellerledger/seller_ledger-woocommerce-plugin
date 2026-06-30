@@ -4,17 +4,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class WC_SellerLedger_Business {
-	private $token;
+	private $integration;
 	private $sync_start_date;
 	private $billing_status;
+	private $name;
 	private $needs_backfill = false;
 
 	const SYNC_START_DATE_OPTION = 'sellerledger-sync-start-date';
 	const DATE_FORMAT            = 'Y-m-d';
 
-	public static function init( $token ) {
-		$instance = new self( $token );
-		$instance->get_metadata();
+	public static function init( $integration ) {
+		$instance = new self( $integration );
+		$instance->load();
 		return $instance;
 	}
 
@@ -22,24 +23,31 @@ class WC_SellerLedger_Business {
 		delete_option( self::SYNC_START_DATE_OPTION );
 	}
 
-	public function __construct( $token ) {
-		$this->token           = $token;
+	public function __construct( $integration ) {
+		$this->integration     = $integration;
 		$this->sync_start_date = new DateTime( '3000-01-01' );
 	}
 
-	public function get_metadata() {
-		if ( $this->token->invalid() ) {
+	public function load() {
+		$business = $this->integration->business_data();
+
+		if ( is_null( $business ) ) {
 			return false;
 		}
 
-		try {
-			$client                = SellerLedger\Client::withApiKey( $this->token->get() );
-			$business              = $client->getBusiness();
+		if ( isset( $business->data_syncable_start_date ) ) {
 			$this->sync_start_date = new DateTime( $business->data_syncable_start_date );
-			$this->billing_status  = $business->billing_status;
-			$this->update_sync_start_date();
-		} catch ( SellerLedger\Exception $e ) {
 		}
+
+		if ( isset( $business->billing_status ) ) {
+			$this->billing_status = $business->billing_status;
+		}
+
+		if ( isset( $business->name ) ) {
+			$this->name = $business->name;
+		}
+
+		$this->update_sync_start_date();
 	}
 
 	private function update_sync_start_date() {
@@ -49,7 +57,7 @@ class WC_SellerLedger_Business {
 			$this->needs_backfill = true;
 		}
 
-		add_option( self::SYNC_START_DATE_OPTION, $this->sync_start_date() );
+		update_option( self::SYNC_START_DATE_OPTION, $this->sync_start_date() );
 	}
 
 	public function sync_start_date() {
@@ -58,6 +66,10 @@ class WC_SellerLedger_Business {
 
 	public function billing_status() {
 		return $this->billing_status;
+	}
+
+	public function name() {
+		return $this->name;
 	}
 
 	public function needs_backfill() {

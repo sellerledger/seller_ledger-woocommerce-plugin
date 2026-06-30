@@ -54,7 +54,7 @@ abstract class WC_SellerLedger_Transaction {
 
 	public function required_fields_present() {
 		foreach ( $this->required_fields_with_values() as $key => $val ) {
-			if ( is_null( $val ) || $val == '' ) {
+			if ( is_null( $val ) || '' === $val ) {
 				return false;
 			}
 		}
@@ -72,10 +72,6 @@ abstract class WC_SellerLedger_Transaction {
 		}
 
 		return $this->order->get_refunds();
-	}
-
-	public function endpoint_name() {
-		return $this->record_type == 'order' ? 'orders' : 'refunds';
 	}
 
 	public function to_json() {
@@ -116,7 +112,7 @@ abstract class WC_SellerLedger_Transaction {
 
 	public function apply_optional_params( $data ) {
 		foreach ( $this->build_optional_params() as $key => $val ) {
-			if ( ! is_null( $val ) && $val != '' ) {
+			if ( ! is_null( $val ) && '' !== $val ) {
 				$data[ $key ] = $val;
 			}
 		}
@@ -125,11 +121,73 @@ abstract class WC_SellerLedger_Transaction {
 	}
 
 	public function build_optional_params() {
+		$ship = self::ship_to( $this->order );
+
 		return array(
-			'ship_to_country_code' => $this->order->get_shipping_country(),
-			'ship_to_state'        => $this->order->get_shipping_state(),
-			'ship_to_zip'          => $this->order->get_shipping_postcode(),
+			'ship_to_country_code' => $ship['country'],
+			'ship_to_state'        => $ship['state'],
+			'ship_to_zip'          => $ship['zip'],
 		);
+	}
+
+	public static function ship_to( $order ) {
+		// Local pickup is taxed at the store's location, not the customer's.
+		if ( self::is_local_pickup( $order ) ) {
+			return self::store_address();
+		}
+
+		if ( '' !== $order->get_shipping_country() ) {
+			return array(
+				'country' => $order->get_shipping_country(),
+				'state'   => $order->get_shipping_state(),
+				'zip'     => $order->get_shipping_postcode(),
+			);
+		}
+
+		return array(
+			'country' => $order->get_billing_country(),
+			'state'   => $order->get_billing_state(),
+			'zip'     => $order->get_billing_postcode(),
+		);
+	}
+
+	private static function is_local_pickup( $order ) {
+		foreach ( $order->get_shipping_methods() as $method ) {
+			// 'local_pickup' is the classic method; 'pickup_location' is the
+			// Cart/Checkout Blocks local-pickup method.
+			if ( in_array( $method->get_method_id(), array( 'local_pickup', 'pickup_location' ), true ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static function store_address() {
+		return array(
+			'country' => WC()->countries->get_base_country(),
+			'state'   => WC()->countries->get_base_state(),
+			'zip'     => WC()->countries->get_base_postcode(),
+		);
+	}
+
+	public static function buyer_name( $order ) {
+		$name = trim( $order->get_formatted_billing_full_name() );
+		if ( '' !== $name ) {
+			return $name;
+		}
+
+		$company = $order->get_billing_company();
+		if ( '' !== $company ) {
+			return $company;
+		}
+
+		$email = $order->get_billing_email();
+		if ( '' !== $email ) {
+			return $email;
+		}
+
+		return __( 'Guest', 'seller-ledger' );
 	}
 
 	public function line_items_to_params() {
@@ -137,20 +195,30 @@ abstract class WC_SellerLedger_Transaction {
 
 		foreach ( $this->order->get_items( array( 'line_item', 'fee' ) ) as $item ) {
 			if ( $item instanceof WC_Order_Item_Fee ) {
-				$data[] = array(
-					'product_name' => $item->get_name(),
-					'quantity'     => $item->get_quantity(),
-					'total_amount' => $item->get_amount(),
-					'item_amount'  => $item->get_amount(),
-				);
-			} else {
-				$product = $item->get_product();
+				$amount = (float) $item->get_amount();
+				$tax    = (float) $item->get_total_tax();
 
 				$data[] = array(
-					'product_name' => $product->get_name(),
-					'quantity'     => $item->get_quantity(),
-					'total_amount' => $item->get_total(),
-					'item_amount'  => $item->get_subtotal(),
+					'product_name'    => $item->get_name(),
+					'quantity'        => 1,
+					'item_amount'     => round( $amount, 2 ),
+					'discount_amount' => 0,
+					'tax_amount'      => round( $tax, 2 ),
+					'total_amount'    => round( $amount + $tax, 2 ),
+				);
+			} else {
+				$product  = $item->get_product();
+				$subtotal = (float) $item->get_subtotal();
+				$total    = (float) $item->get_total();
+				$tax      = (float) $item->get_total_tax();
+
+				$data[] = array(
+					'product_name'    => $product ? $product->get_name() : $item->get_name(),
+					'quantity'        => $item->get_quantity(),
+					'item_amount'     => round( $subtotal, 2 ),
+					'discount_amount' => round( $subtotal - $total, 2 ),
+					'tax_amount'      => round( $tax, 2 ),
+					'total_amount'    => round( $total + $tax, 2 ),
 				);
 			}
 		}
@@ -163,7 +231,16 @@ abstract class WC_SellerLedger_Transaction {
 		$this->last_error = '';
 		$this->status     = 'complete';
 		$this->order->update_meta_data( 'sellerledger_sync', $this->updated_at );
+		$this->order->save_meta_data();
 		$this->save();
+
+		WC_SellerLedger_Logger::info(
+			'Synced ' . $this->record_type . ' #' . $this->record_id,
+			array(
+				'record_id' => $this->record_id,
+				'type'      => $this->record_type,
+			)
+		);
 	}
 
 	public function sync_fail( $reason ) {
@@ -177,19 +254,27 @@ abstract class WC_SellerLedger_Transaction {
 		}
 
 		$this->order->update_meta_data( 'sellerledger_sync_error', $reason );
+		$this->order->save_meta_data();
 		$this->save();
+
+		$context = array(
+			'record_id' => $this->record_id,
+			'type'      => $this->record_type,
+			'retry'     => $this->retry_count,
+		);
+		if ( 'failed' === $this->status ) {
+			WC_SellerLedger_Logger::error( 'Sync failed permanently: ' . $reason, $context );
+		} else {
+			WC_SellerLedger_Logger::warning( 'Sync failed, will retry: ' . $reason, $context );
+		}
 	}
 
 	public function is_queued() {
 		global $wpdb;
 
-		$results = $wpdb->get_results( $wpdb->prepare( "select record_id from %s where record_id = %d and record_type = %s and status in ( 'new', 'error' )", self::table_name(), $this->record_id, $this->record_type ), ARRAY_A );
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT record_id FROM %i WHERE record_id = %d AND record_type = %s AND status IN ( 'new', 'error' )", self::table_name(), $this->record_id, $this->record_type ), ARRAY_A );
 
-		if ( empty( $results ) || ! is_array( $results ) ) {
-			return false;
-		}
-
-		return true;
+		return ! empty( $results );
 	}
 
 	public function save() {
@@ -226,15 +311,5 @@ abstract class WC_SellerLedger_Transaction {
 		return $wpdb->delete( self::table_name(), array( 'id' => $this->id ) );
 	}
 
-	abstract function root_path();
-
-	public function base_uri( $connection_id ) {
-		return 'connections/' . $connection_id . '/' . $this->root_path();
-	}
-
-	public function record_uri( $connection_id ) {
-		return $this->base_uri( $connection_id ) . '/' . $this->record_id;
-	}
-
-	abstract function add_note( $note );
+	abstract public function add_note( $note );
 }

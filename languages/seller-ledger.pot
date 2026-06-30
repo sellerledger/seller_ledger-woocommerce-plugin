@@ -1,0 +1,322 @@
+# Copyright (C) 2026 Seller Ledger
+# This file is distributed under the GNU General Public License v2.0 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Seller Ledger 0.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/seller-ledger\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-06-30T13:08:35+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.9.0\n"
+"X-Domain: seller-ledger\n"
+
+#. Plugin Name of the plugin
+#. Author of the plugin
+#: includes/class-wc-sellerledger-order-status.php:25
+#: includes/class-wc-sellerledger-settings.php:51
+#: includes/class-wc-sellerledger-settings.php:155
+msgid "Seller Ledger"
+msgstr ""
+
+#. Plugin URI of the plugin
+msgid "https://github.com/sellerledger/seller_ledger-woocommerce-plugin"
+msgstr ""
+
+#. Description of the plugin
+msgid "Sync your WooCommerce orders and refunds to Seller Ledger and calculate sales tax at checkout."
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://www.sellerledger.com"
+msgstr ""
+
+#: includes/class-wc-sellerledger-ajax.php:22
+msgid "You are not allowed to do that."
+msgstr ""
+
+#: includes/class-wc-sellerledger-ajax.php:37
+msgid "Import started. Transactions will appear in the queue as they are processed."
+msgstr ""
+
+#: includes/class-wc-sellerledger-order-status.php:46
+msgid "This order will sync to Seller Ledger once it is marked completed."
+msgstr ""
+
+#: includes/class-wc-sellerledger-order-status.php:50
+msgid "Not synced: this order is missing a shipping or billing address, which Seller Ledger requires."
+msgstr ""
+
+#. translators: %s: error message
+#: includes/class-wc-sellerledger-order-status.php:61
+msgid "Sync failed: %s"
+msgstr ""
+
+#. translators: %s: error message
+#: includes/class-wc-sellerledger-order-status.php:66
+msgid "Sync error, will retry: %s"
+msgstr ""
+
+#: includes/class-wc-sellerledger-order-status.php:70
+msgid "Queued — this order will sync to Seller Ledger shortly."
+msgstr ""
+
+#: includes/class-wc-sellerledger-order-status.php:78
+msgid "Eligible to sync — this order will be queued shortly."
+msgstr ""
+
+#: includes/class-wc-sellerledger-order-status.php:82
+msgid "Synced to Seller Ledger"
+msgstr ""
+
+#. translators: %s: human-readable time since the order synced
+#: includes/class-wc-sellerledger-order-status.php:88
+msgid "%s ago"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-backfill.php:18
+msgid "Import completed and refunded orders from a date range into Seller Ledger. Your initial history was imported automatically when you connected; use this to re-import a specific range."
+msgstr ""
+
+#. translators: %s: earliest importable date
+#: includes/class-wc-sellerledger-settings-backfill.php:22
+msgid "Orders back to %s can be imported."
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-backfill.php:26
+msgid "Start date"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-backfill.php:30
+msgid "End date"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-backfill.php:34
+msgid "Import transactions"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:32
+msgid "No orders have been queued."
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:46
+msgid "Pending"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:91
+msgid "ID"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:92
+msgid "Record ID"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:93
+msgid "Record Type"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:94
+msgid "Queue Status"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:95
+msgid "Transaction Status"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:96
+msgid "Created On"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:97
+msgid "Updated On"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:98
+msgid "Retry Count"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings-queue.php:99
+msgid "Error"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:103
+msgid "Settings"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:107
+msgid "Transactions"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:115
+msgid "API key"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:125
+msgid "Real-time sales tax"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:127
+msgid "Calculate sales tax at checkout using Seller Ledger. This overrides WooCommerce's native tax rates and requires WooCommerce tax calculation to be enabled."
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:135
+msgid "Debug logging"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:137
+msgid "Log detailed sync and tax-calculation activity for troubleshooting. Sync and tax failures are always logged."
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:138
+msgid "View logs"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:181
+msgid "That API key was not accepted. Check that you copied the full key and try again."
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:185
+msgid "Your Seller Ledger account is locked. Update your billing to resume syncing orders and calculating sales tax."
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:186
+msgid "Update billing"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:189
+msgid "We reached Seller Ledger but could not finish connecting. Save again in a moment to retry."
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:208
+msgid "Connected to Seller Ledger."
+msgstr ""
+
+#. translators: %s: business name (wrapped in a strong tag)
+#: includes/class-wc-sellerledger-settings.php:212
+msgid "Business: %s"
+msgstr ""
+
+#. translators: %s: number of synced transactions
+#: includes/class-wc-sellerledger-settings.php:218
+msgid "Synced transactions: %s"
+msgstr ""
+
+#. translators: %s: number of transactions waiting to sync
+#: includes/class-wc-sellerledger-settings.php:222
+msgid "%s pending"
+msgstr ""
+
+#. translators: %s: number of transactions that failed to sync
+#: includes/class-wc-sellerledger-settings.php:227
+msgid "%s failed"
+msgstr ""
+
+#. translators: %s: human-readable time since the last successful sync
+#: includes/class-wc-sellerledger-settings.php:232
+msgid "Last sync: %s ago"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:244
+msgid "Open Seller Ledger dashboard"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:248
+msgid "View this connection"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:273
+msgid "Real-time sales tax is on, but you have no established nexus in Seller Ledger, so no sales tax will be collected."
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:274
+msgid "Set up your nexus"
+msgstr ""
+
+#. translators: %d: number of states where the merchant collects sales tax
+#: includes/class-wc-sellerledger-settings.php:283
+msgid "Collecting sales tax in %d state"
+msgid_plural "Collecting sales tax in %d states"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-wc-sellerledger-settings.php:286
+msgid "manage"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:290
+msgid "State"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:291
+msgid "Nexus"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:292
+msgid "Since"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:293
+msgid "Filing"
+msgstr ""
+
+#. translators: 1: state name, 2: percent toward the economic nexus threshold
+#: includes/class-wc-sellerledger-settings.php:322
+msgid "%1$s (%2$d%% of threshold)"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:326
+msgid "Approaching economic nexus:"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:333
+msgid "Economic"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:335
+msgid "Physical"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:360
+msgid "Connect to Seller Ledger"
+msgstr ""
+
+#. translators: %s: URL of the Seller Ledger API keys page
+#: includes/class-wc-sellerledger-settings.php:365
+msgid "Prefer to do it by hand? <a href=\"%s\" target=\"_blank\" rel=\"noopener\">Find your API key here</a>, then paste it below and save."
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:437
+msgid "Import historical orders"
+msgstr ""
+
+#: includes/class-wc-sellerledger-settings.php:441
+msgid "Transaction history"
+msgstr ""
+
+#: includes/class-wc-sellerledger-tax-calculator.php:61
+msgid "Seller Ledger real-time sales tax is turned on, but WooCommerce tax calculation is disabled. Enable taxes under WooCommerce > Settings > General for it to take effect."
+msgstr ""
+
+#: includes/class-wc-sellerledger-tax-calculator.php:148
+msgid "Sales Tax"
+msgstr ""
+
+#: includes/class-wc-sellerledger-transaction-sync.php:302
+msgid "Order synced to Seller Ledger"
+msgstr ""
+
+#: includes/class-wc-sellerledger-transaction.php:165
+msgid "Guest"
+msgstr ""
+
+#. translators: 1: opening strong tag, 2: closing strong tag, 3: minimum WooCommerce version
+#: sellerledger-woocommerce.php:105
+msgid "%1$sSeller Ledger has been disabled.%2$s This version of Seller Ledger requires WooCommerce %3$s or newer. Please install or update WooCommerce to version %3$s or newer."
+msgstr ""
+
+#: sellerledger-woocommerce.php:115
+msgid "Seller Ledger could not load its bundled libraries. Please reinstall the plugin from a complete package."
+msgstr ""

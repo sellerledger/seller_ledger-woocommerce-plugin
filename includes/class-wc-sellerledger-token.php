@@ -11,7 +11,7 @@ class WC_SellerLedger_Token {
 	}
 
 	public function __construct( $raw_token ) {
-		$this->raw_token = $raw_token;
+		$this->raw_token = is_string( $raw_token ) ? trim( $raw_token ) : $raw_token;
 	}
 
 	public function invalid() {
@@ -19,7 +19,7 @@ class WC_SellerLedger_Token {
 	}
 
 	public function valid() {
-		return ( $this->get() != null );
+		return is_string( $this->raw_token ) && '' !== $this->raw_token;
 	}
 
 	public function get() {

@@ -1,0 +1,6 @@
+{
+	"config": {
+		"SELLERLEDGER_APP_URL": "http://localhost:3000",
+		"SELLERLEDGER_API_URL": "http://172.17.0.1:3000"
+	}
+}

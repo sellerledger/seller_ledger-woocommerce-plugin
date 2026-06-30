@@ -1,2 +1,7 @@
 /tmp
 /vendor
+/build
+/dist
+/composer.lock
+/.phpunit.result.cache
+/.wp-env.override.json
