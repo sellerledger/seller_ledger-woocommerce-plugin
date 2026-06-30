@@ -103,8 +103,8 @@ don't need an accounting background to use it.
 
 = How are marketplace and processor payouts handled? =
 
-Payouts are recorded as transfers rather than income. Connect the bank account that receives
-them and you can reconcile those deposits to close your books each period.
+Connect the bank account that receives your payouts and Seller Ledger imports the deposits, so
+you can reconcile them and close your books each period.
 
 == Screenshots ==
 
