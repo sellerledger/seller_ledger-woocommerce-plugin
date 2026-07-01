@@ -3,7 +3,7 @@ Contributors: sellerledger
 Tags: woocommerce, accounting, bookkeeping, sales tax, ecommerce
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -120,6 +120,10 @@ you can reconcile them and close your books each period.
 3. Open the Seller Ledger panel in WooCommerce > Settings and click Connect, or paste your API key.
 
 == Changelog ==
+
+= 0.1.1 =
+* Prefix all class, function, hook, option, transient, and asset names uniquely (SellerLedger_/sellerledger_) to avoid collisions with other plugins
+* Include composer.json in the distributed plugin for dependency transparency
 
 = 0.1.0 =
 * Real-time sales tax at checkout via the Seller Ledger sales tax engine, collecting only where you have established nexus

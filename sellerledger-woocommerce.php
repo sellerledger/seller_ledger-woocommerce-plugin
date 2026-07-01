@@ -5,7 +5,7 @@
  * Description: Sync your WooCommerce orders and refunds to Seller Ledger and calculate sales tax at checkout.
  * Author: Seller Ledger
  * Author URI: https://www.sellerledger.com
- * Version: 0.1.0
+ * Version: 0.1.1
  * Requires at least: 6.5
  * Requires PHP: 8.0
  * Requires Plugins: woocommerce
@@ -39,7 +39,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 final class SellerLedger_Plugin {
 
-	public static $version                     = '0.1.0';
+	public static $version                     = '0.1.1';
 	public static $minimum_woocommerce_version = '8.8.0';
 
 	public function __construct() {
