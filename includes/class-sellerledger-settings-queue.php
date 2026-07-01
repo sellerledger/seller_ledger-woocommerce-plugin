@@ -7,7 +7,7 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
 
-class WC_SellerLedger_Settings_Queue extends WP_List_Table {
+class SellerLedger_Settings_Queue extends WP_List_Table {
 	private $orders = array();
 
 	public function __construct() {
@@ -58,8 +58,8 @@ class WC_SellerLedger_Settings_Queue extends WP_List_Table {
 		$page          = absint( $this->get_pagenum() );
 		$per_page      = absint( 20 );
 		$offset        = absint( ( $page - 1 ) * $per_page );
-		$records       = WC_SellerLedger_Transaction_Queries::all_with_status( '', $per_page, $offset );
-		$total_records = WC_SellerLedger_Transaction_Queries::count_with_status( '' );
+		$records       = SellerLedger_Transaction_Queries::all_with_status( '', $per_page, $offset );
+		$total_records = SellerLedger_Transaction_Queries::count_with_status( '' );
 		$this->set_pagination_args(
 			array(
 				'total_items' => $total_records,

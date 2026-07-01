@@ -11,5 +11,5 @@
 define( 'ABSPATH', __DIR__ . '/' );
 
 require_once dirname( __DIR__ ) . '/vendor/autoload.php';
-require_once dirname( __DIR__ ) . '/includes/class-wc-sellerledger-cart-tax-request.php';
-require_once dirname( __DIR__ ) . '/includes/class-wc-sellerledger-tax-calculator.php';
+require_once dirname( __DIR__ ) . '/includes/class-sellerledger-cart-tax-request.php';
+require_once dirname( __DIR__ ) . '/includes/class-sellerledger-tax-calculator.php';

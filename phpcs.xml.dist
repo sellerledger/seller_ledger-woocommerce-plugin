@@ -71,8 +71,8 @@
 		job queue must read live state, never a cached copy.
 	-->
 	<rule ref="WordPress.DB.DirectDatabaseQuery">
-		<exclude-pattern>includes/class-wc-sellerledger-transaction.php</exclude-pattern>
-		<exclude-pattern>includes/class-wc-sellerledger-transaction-queries.php</exclude-pattern>
+		<exclude-pattern>includes/class-sellerledger-transaction.php</exclude-pattern>
+		<exclude-pattern>includes/class-sellerledger-transaction-queries.php</exclude-pattern>
 	</rule>
 
 	<!-- Minimum supported versions (keep in sync with the plugin headers + readme.txt). -->

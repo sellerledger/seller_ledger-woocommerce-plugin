@@ -19,11 +19,11 @@ class TaxCalculatorTest extends TestCase {
 	}
 
 	private function calculator() {
-		return new WC_SellerLedger_Tax_Calculator( new stdClass() );
+		return new SellerLedger_Tax_Calculator( new stdClass() );
 	}
 
 	private function set( $calculator, $prop, $value ) {
-		$ref = new ReflectionProperty( WC_SellerLedger_Tax_Calculator::class, $prop );
+		$ref = new ReflectionProperty( SellerLedger_Tax_Calculator::class, $prop );
 		$ref->setAccessible( true );
 		$ref->setValue( $calculator, $value );
 	}

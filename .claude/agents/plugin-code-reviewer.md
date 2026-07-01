@@ -19,6 +19,10 @@ Review against these, in priority order.
 
 2. WordPress.org guidelines
    - One text domain matching the plugin slug; all user-facing strings translatable with it; translator comments precede every `sprintf`/`printf` with placeholders.
+   - **Unique prefixing (a common review blocker).** Every declaration and stored/registered name must carry a plugin-unique prefix of at least 4 characters — `SellerLedger_` / `sellerledger_`. FLAG anything prefixed with a common word or a short prefix: `WC_`, `wc_`, `woocommerce_`, or `sl_` / `sl-`. Check: class/function/`define()` names; `global` vars; option, transient, and post-meta keys (`update_option`, `set_transient`, `update_post_meta`); and WP registrations — `wp_register_script`/`wp_register_style` handles, the `wp_localize_script` object name, `add_action( 'wp_ajax_...' )` action names, `add_shortcode`, `register_post_type`, `add_menu_page`. Grep for `WC_SellerLedger`, `wc_sellerledger`, `woocommerce_sellerledger`, `wc-sellerledger`, and `'sl_`/`"sl_` to catch regressions. The ONLY allowed exception is the WooCommerce-core-generated `woocommerce_{id}_settings` option that `WC_Integration` names for us.
+   - **Class filenames match the class**: `SellerLedger_Foo_Bar` lives in `class-sellerledger-foo-bar.php` (phpcs `WordPress.Files.FileName.InvalidClassFileName`).
+   - **Composer manifest ships.** If the plugin bundles Composer dependencies (it does — Guzzle + the SL client), `composer.json` must be present in the plugin root for dependency transparency; only `composer.lock` is excluded from the zip.
+   - **Don't hijack the dashboard (Guideline 11).** Admin notices, upgrade prompts, and alerts must be limited in scope and conditional (error/misconfiguration states), never persistent dashboard-wide nags.
    - No calling home or tracking without disclosure and opt-in; external services disclosed in `readme.txt`.
    - GPL-compatible license; no obfuscated or minified-only code; bundled dependencies are namespaced (PHP-Scoper).
    - `readme.txt` is valid: required headers present, stable tag matches the main file version, sensible "Tested up to", short description under 150 characters.

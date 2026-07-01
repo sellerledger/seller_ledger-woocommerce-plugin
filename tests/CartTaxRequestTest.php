@@ -133,7 +133,7 @@ class CartTaxRequestTest extends TestCase {
 	}
 
 	public function test_build_params_emits_the_documented_key_set() {
-		$params = WC_SellerLedger_Cart_Tax_Request::build_params(
+		$params = SellerLedger_Cart_Tax_Request::build_params(
 			array(
 				'ship_to_country_code' => 'US',
 				'ship_to_state'        => 'TX',
@@ -152,7 +152,7 @@ class CartTaxRequestTest extends TestCase {
 		);
 
 		$this->assertSame(
-			WC_SellerLedger_Cart_Tax_Request::PARAM_KEYS,
+			SellerLedger_Cart_Tax_Request::PARAM_KEYS,
 			array_keys( $params )
 		);
 		$this->assertSame( 0, $params['tax_amount'] );
@@ -168,7 +168,7 @@ class CartTaxRequestTest extends TestCase {
 			10.0
 		);
 
-		$request = WC_SellerLedger_Cart_Tax_Request::from_cart( $cart, $this->customer() );
+		$request = SellerLedger_Cart_Tax_Request::from_cart( $cart, $this->customer() );
 		$params  = $request->to_params();
 
 		$this->assertSame( 'US', $params['ship_to_country_code'] );
@@ -199,7 +199,7 @@ class CartTaxRequestTest extends TestCase {
 			0.0
 		);
 
-		$params = WC_SellerLedger_Cart_Tax_Request::from_cart( $cart, $this->customer() )->to_params();
+		$params = SellerLedger_Cart_Tax_Request::from_cart( $cart, $this->customer() )->to_params();
 
 		$this->assertSame( 105.0, $params['items_subtotal'] );
 		$this->assertCount( 2, $params['items'] );
@@ -208,16 +208,16 @@ class CartTaxRequestTest extends TestCase {
 
 	public function test_is_calculable_requires_us_state_zip_and_items() {
 		$cart = new SL_Test_Cart( array( $this->line( 'Widget', 'W-1', 1, 100.0, 100.0 ) ), array(), 100.0 );
-		$this->assertTrue( WC_SellerLedger_Cart_Tax_Request::from_cart( $cart, $this->customer() )->is_calculable() );
+		$this->assertTrue( SellerLedger_Cart_Tax_Request::from_cart( $cart, $this->customer() )->is_calculable() );
 
 		$empty_cart = new SL_Test_Cart( array(), array(), 0.0 );
-		$this->assertFalse( WC_SellerLedger_Cart_Tax_Request::from_cart( $empty_cart, $this->customer() )->is_calculable() );
+		$this->assertFalse( SellerLedger_Cart_Tax_Request::from_cart( $empty_cart, $this->customer() )->is_calculable() );
 
 		$no_zip = new SL_Test_Customer( array( 'ship_country' => 'US', 'ship_state' => 'TX', 'ship_zip' => '' ) );
-		$this->assertFalse( WC_SellerLedger_Cart_Tax_Request::from_cart( $cart, $no_zip )->is_calculable() );
+		$this->assertFalse( SellerLedger_Cart_Tax_Request::from_cart( $cart, $no_zip )->is_calculable() );
 
 		$ca = new SL_Test_Customer( array( 'ship_country' => 'CA', 'ship_state' => 'ON', 'ship_zip' => 'M5V' ) );
-		$this->assertFalse( WC_SellerLedger_Cart_Tax_Request::from_cart( $cart, $ca )->is_calculable() );
+		$this->assertFalse( SellerLedger_Cart_Tax_Request::from_cart( $cart, $ca )->is_calculable() );
 	}
 
 	public function test_is_calculable_falls_back_to_billing_address() {
@@ -230,7 +230,7 @@ class CartTaxRequestTest extends TestCase {
 			)
 		);
 
-		$this->assertTrue( WC_SellerLedger_Cart_Tax_Request::from_cart( $cart, $customer )->is_calculable() );
+		$this->assertTrue( SellerLedger_Cart_Tax_Request::from_cart( $cart, $customer )->is_calculable() );
 	}
 
 	public function test_cache_key_is_stable_regardless_of_item_order() {
@@ -254,8 +254,8 @@ class CartTaxRequestTest extends TestCase {
 			150.0
 		);
 
-		$key_a = WC_SellerLedger_Cart_Tax_Request::from_cart( $cart_a, $customer )->cache_key();
-		$key_b = WC_SellerLedger_Cart_Tax_Request::from_cart( $cart_b, $customer )->cache_key();
+		$key_a = SellerLedger_Cart_Tax_Request::from_cart( $cart_a, $customer )->cache_key();
+		$key_b = SellerLedger_Cart_Tax_Request::from_cart( $cart_b, $customer )->cache_key();
 
 		$this->assertSame( $key_a, $key_b );
 	}
@@ -263,7 +263,7 @@ class CartTaxRequestTest extends TestCase {
 	public function test_cache_key_changes_with_address() {
 		$cart = new SL_Test_Cart( array( $this->line( 'Widget', 'W-1', 1, 100.0, 100.0 ) ), array(), 100.0 );
 
-		$tx = WC_SellerLedger_Cart_Tax_Request::from_cart( $cart, $this->customer() )->cache_key();
+		$tx = SellerLedger_Cart_Tax_Request::from_cart( $cart, $this->customer() )->cache_key();
 
 		$other_customer = new SL_Test_Customer(
 			array(
@@ -272,7 +272,7 @@ class CartTaxRequestTest extends TestCase {
 				'ship_zip'     => '90001',
 			)
 		);
-		$ca = WC_SellerLedger_Cart_Tax_Request::from_cart( $cart, $other_customer )->cache_key();
+		$ca = SellerLedger_Cart_Tax_Request::from_cart( $cart, $other_customer )->cache_key();
 
 		$this->assertNotSame( $tx, $ca );
 	}

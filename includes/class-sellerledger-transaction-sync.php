@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
 
-class WC_SellerLedger_Transaction_Sync {
+class SellerLedger_Transaction_Sync {
 	private $integration;
 
 	const QUEUE_NAME         = 'sellerledger_queue';
@@ -128,7 +128,7 @@ class WC_SellerLedger_Transaction_Sync {
 	}
 
 	public function queue_order( $order_id ) {
-		$order = WC_SellerLedger_Transaction_Order::build( array( 'record_id' => $order_id ) );
+		$order = SellerLedger_Transaction_Order::build( array( 'record_id' => $order_id ) );
 
 		if ( ! $order->can_queue() ) {
 			return;
@@ -138,7 +138,7 @@ class WC_SellerLedger_Transaction_Sync {
 
 		foreach ( $refunds_data as $refund_data ) {
 			$data   = array( 'record_id' => $refund_data->get_id() );
-			$refund = WC_SellerLedger_Transaction_Refund::build( $data );
+			$refund = SellerLedger_Transaction_Refund::build( $data );
 
 			if ( ! $refund->can_queue() ) {
 				continue;
@@ -152,7 +152,7 @@ class WC_SellerLedger_Transaction_Sync {
 
 	public function queue_refund( $order_id, $refund_id = null ) {
 		$record_id = is_null( $refund_id ) ? $order_id : $refund_id;
-		$refund    = WC_SellerLedger_Transaction_Refund::build( array( 'record_id' => $record_id ) );
+		$refund    = SellerLedger_Transaction_Refund::build( array( 'record_id' => $record_id ) );
 
 		if ( ! $refund->can_queue() ) {
 			return;
@@ -166,9 +166,9 @@ class WC_SellerLedger_Transaction_Sync {
 			return;
 		}
 
-		$order         = WC_SellerLedger_Transaction_Order::build( array( 'record_id' => $id ) );
+		$order         = SellerLedger_Transaction_Order::build( array( 'record_id' => $id ) );
 		$connection_id = $this->integration->connection->get_connection_id();
-		$client        = WC_SellerLedger_Integration::api_client( $this->integration->token->get() );
+		$client        = SellerLedger_Integration::api_client( $this->integration->token->get() );
 
 		try {
 			$client->deleteOrder( $connection_id, $order->record_id );
@@ -184,7 +184,7 @@ class WC_SellerLedger_Transaction_Sync {
 				'record_id' => $refund_data->get_id(),
 			);
 
-			$refund = WC_SellerLedger_Transaction_Refund::build( $data );
+			$refund = SellerLedger_Transaction_Refund::build( $data );
 
 			try {
 				$client->deleteRefund( $connection_id, $refund->record_id );
@@ -201,9 +201,9 @@ class WC_SellerLedger_Transaction_Sync {
 			return;
 		}
 
-		$refund        = WC_SellerLedger_Transaction_Refund::build( array( 'record_id' => $id ) );
+		$refund        = SellerLedger_Transaction_Refund::build( array( 'record_id' => $id ) );
 		$connection_id = $this->integration->connection->get_connection_id();
-		$client        = WC_SellerLedger_Integration::api_client( $this->integration->token->get() );
+		$client        = SellerLedger_Integration::api_client( $this->integration->token->get() );
 
 		try {
 			$client->deleteRefund( $connection_id, $refund->record_id );
@@ -240,7 +240,7 @@ class WC_SellerLedger_Transaction_Sync {
 			return;
 		}
 
-		$ids = WC_SellerLedger_Transaction_Queries::active_ids();
+		$ids = SellerLedger_Transaction_Queries::active_ids();
 
 		if ( empty( $ids ) ) {
 			return;
@@ -258,9 +258,9 @@ class WC_SellerLedger_Transaction_Sync {
 			return;
 		}
 
-		$client = WC_SellerLedger_Integration::api_client( $this->integration->token->get() );
+		$client = SellerLedger_Integration::api_client( $this->integration->token->get() );
 
-		foreach ( WC_SellerLedger_Transaction_Queries::for_ids( $ids ) as $transaction ) {
+		foreach ( SellerLedger_Transaction_Queries::for_ids( $ids ) as $transaction ) {
 			if ( ! $transaction->can_sync() ) {
 				continue;
 			}
@@ -275,7 +275,7 @@ class WC_SellerLedger_Transaction_Sync {
 		$error         = false;
 
 		try {
-			if ( $transaction instanceof WC_SellerLedger_Transaction_Order ) {
+			if ( $transaction instanceof SellerLedger_Transaction_Order ) {
 				$client->createOrder( $connection_id, $body );
 			} else {
 				$client->createRefund( $connection_id, $body );
@@ -287,7 +287,7 @@ class WC_SellerLedger_Transaction_Sync {
 		if ( $error && 406 === (int) $error->getCode() && false !== strpos( $error->getMessage(), 'Record not unique' ) ) {
 			$error = false;
 			try {
-				if ( $transaction instanceof WC_SellerLedger_Transaction_Order ) {
+				if ( $transaction instanceof SellerLedger_Transaction_Order ) {
 					$client->updateOrder( $connection_id, $transaction->record_id, $body );
 				} else {
 					$client->updateRefund( $connection_id, $transaction->record_id, $body );

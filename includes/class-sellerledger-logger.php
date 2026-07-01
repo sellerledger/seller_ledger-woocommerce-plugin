@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * enabled in the plugin settings. Everything is tagged with the seller-ledger
  * source and appears under WooCommerce > Status > Logs.
  */
-class WC_SellerLedger_Logger {
+class SellerLedger_Logger {
 
 	const SOURCE = 'seller-ledger';
 
@@ -36,7 +36,7 @@ class WC_SellerLedger_Logger {
 	}
 
 	public static function debug_enabled() {
-		return class_exists( 'WC_SellerLedger_Settings' ) && WC_SellerLedger_Settings::debug_logging_enabled();
+		return class_exists( 'SellerLedger_Settings' ) && SellerLedger_Settings::debug_logging_enabled();
 	}
 
 	private static function write( $level, $message, $context ) {
