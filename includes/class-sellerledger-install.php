@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Install {
+class SellerLedger_Install {
 
 	public static function init() {
 		add_action( 'init', array( __CLASS__, 'install' ) );
@@ -16,7 +16,7 @@ class WC_SellerLedger_Install {
 
 		$version = get_option( 'sellerledger_version' );
 
-		if ( version_compare( $version, WC_SellerLedger::$version, '<' ) ) {
+		if ( version_compare( $version, SellerLedger_Plugin::$version, '<' ) ) {
 			if ( 'yes' === get_transient( 'sellerledger_installing' ) ) {
 				return;
 			}
@@ -29,7 +29,7 @@ class WC_SellerLedger_Install {
 			$result = dbDelta( self::table_sql() );
 
 			delete_option( 'sellerledger_version' );
-			add_option( 'sellerledger_version', WC_SellerLedger::$version );
+			add_option( 'sellerledger_version', SellerLedger_Plugin::$version );
 
 			delete_transient( 'sellerledger_installing' );
 		}
@@ -66,4 +66,4 @@ class WC_SellerLedger_Install {
 	}
 }
 
-WC_SellerLedger_Install::init();
+SellerLedger_Install::init();

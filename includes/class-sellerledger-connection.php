@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Connection {
+class SellerLedger_Connection {
 	private $token;
 	private $connection_id;
 
@@ -70,7 +70,7 @@ class WC_SellerLedger_Connection {
 		);
 
 		try {
-			$client   = WC_SellerLedger_Integration::api_client( $this->token->get() );
+			$client   = SellerLedger_Integration::api_client( $this->token->get() );
 			$response = $client->createConnection( $details );
 			$this->set_connection_id( $response->id );
 			delete_transient( self::ERROR_TRANSIENT );

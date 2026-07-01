@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Transaction_Order extends WC_SellerLedger_Transaction {
+class SellerLedger_Transaction_Order extends SellerLedger_Transaction {
 
 	public static function build( $data ) {
 		$data['record_type'] = 'order';

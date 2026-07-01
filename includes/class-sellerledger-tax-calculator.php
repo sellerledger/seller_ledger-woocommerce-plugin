@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Tax_Calculator {
+class SellerLedger_Tax_Calculator {
 
 	const RATE_ID_OPTION = 'sellerledger-tax-rate-id';
 	const CACHE_TTL      = 900;
@@ -35,7 +35,7 @@ class WC_SellerLedger_Tax_Calculator {
 	public function enabled() {
 		return $this->integration->token->valid()
 			&& $this->integration->connection->has_connection()
-			&& WC_SellerLedger_Settings::realtime_tax_enabled()
+			&& SellerLedger_Settings::realtime_tax_enabled()
 			&& function_exists( 'wc_tax_enabled' )
 			&& wc_tax_enabled();
 	}
@@ -57,7 +57,7 @@ class WC_SellerLedger_Tax_Calculator {
 
 	private function misconfigured() {
 		return is_admin()
-			&& WC_SellerLedger_Settings::realtime_tax_enabled()
+			&& SellerLedger_Settings::realtime_tax_enabled()
 			&& function_exists( 'wc_tax_enabled' )
 			&& ! wc_tax_enabled();
 	}
@@ -82,7 +82,7 @@ class WC_SellerLedger_Tax_Calculator {
 			return;
 		}
 
-		$request = WC_SellerLedger_Cart_Tax_Request::from_cart( $cart, WC()->customer );
+		$request = SellerLedger_Cart_Tax_Request::from_cart( $cart, WC()->customer );
 
 		if ( ! $request->is_calculable() ) {
 			return;
@@ -119,7 +119,7 @@ class WC_SellerLedger_Tax_Calculator {
 			$state   = $args['state'];
 			$zip     = $args['postcode'];
 		} else {
-			$ship    = WC_SellerLedger_Transaction::ship_to( $order );
+			$ship    = SellerLedger_Transaction::ship_to( $order );
 			$country = $ship['country'];
 			$state   = $ship['state'];
 			$zip     = $ship['zip'];
@@ -142,7 +142,7 @@ class WC_SellerLedger_Tax_Calculator {
 
 		$this->collecting = true;
 
-		$params = WC_SellerLedger_Transaction_Order::build( array( 'record_id' => $order->get_id() ) )->to_params();
+		$params = SellerLedger_Transaction_Order::build( array( 'record_id' => $order->get_id() ) )->to_params();
 		if ( ! is_array( $params ) ) {
 			return;
 		}
@@ -152,7 +152,7 @@ class WC_SellerLedger_Tax_Calculator {
 		$params['ship_to_zip']          = $zip;
 		$params['tax_amount']           = 0;
 
-		$cache_key    = 'sl_tax_order_' . md5( wp_json_encode( array( $order->get_id(), $country, $state, $zip, $params['items_subtotal'] ?? '', $params['shipping_amount'] ?? '', $params['discount_amount'] ?? '', $params['total_amount'] ?? '' ) ) );
+		$cache_key    = 'sellerledger_tax_order_' . md5( wp_json_encode( array( $order->get_id(), $country, $state, $zip, $params['items_subtotal'] ?? '', $params['shipping_amount'] ?? '', $params['discount_amount'] ?? '', $params['total_amount'] ?? '' ) ) );
 		$this->result = $this->lookup_params( $params, $cache_key );
 	}
 
@@ -198,7 +198,7 @@ class WC_SellerLedger_Tax_Calculator {
 		}
 
 		try {
-			$client = WC_SellerLedger_Integration::api_client( $this->integration->token->get() );
+			$client = SellerLedger_Integration::api_client( $this->integration->token->get() );
 			$tax    = $client->calculateSalesTax(
 				$params,
 				array(
@@ -211,11 +211,11 @@ class WC_SellerLedger_Tax_Calculator {
 			return $tax;
 		} catch ( SellerLedger\Exception $e ) {
 			$this->api_failed = true;
-			WC_SellerLedger_Logger::warning( 'Sales tax calculation rejected: ' . $e->getMessage(), array( 'code' => $e->getCode() ) );
+			SellerLedger_Logger::warning( 'Sales tax calculation rejected: ' . $e->getMessage(), array( 'code' => $e->getCode() ) );
 			return null;
 		} catch ( \Throwable $e ) {
 			$this->api_failed = true;
-			WC_SellerLedger_Logger::error( 'Sales tax calculation failed: ' . $e->getMessage() );
+			SellerLedger_Logger::error( 'Sales tax calculation failed: ' . $e->getMessage() );
 			return null;
 		}
 	}

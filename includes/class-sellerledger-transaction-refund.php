@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Transaction_Refund extends WC_SellerLedger_Transaction {
+class SellerLedger_Transaction_Refund extends SellerLedger_Transaction {
 
 	private $parent_order;
 

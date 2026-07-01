@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Token {
+class SellerLedger_Token {
 	private $raw_token;
 
 	public static function init( $raw_token ) {

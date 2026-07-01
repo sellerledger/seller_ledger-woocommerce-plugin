@@ -3,9 +3,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
+if ( ! class_exists( 'SellerLedger_Settings' ) ) :
 
-	class WC_SellerLedger_Settings {
+	class SellerLedger_Settings {
 
 		public static $tab_id = 'sellerledger-integration';
 
@@ -171,24 +171,24 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 		}
 
 		private static function panel_description( $state ) {
-			$key_url = esc_url( WC_SellerLedger_Integration::app_url() . '/settings/api' );
+			$key_url = esc_url( SellerLedger_Integration::app_url() . '/settings/api' );
 
 			switch ( $state ) {
 				case 'connected':
 					return self::connected_panel();
 
 				case 'invalid_token':
-					return '<span class="sl-status-error">' . esc_html__( 'That API key was not accepted. Check that you copied the full key and try again.', 'seller-ledger' ) . '</span>'
+					return '<span class="sellerledger-status-error">' . esc_html__( 'That API key was not accepted. Check that you copied the full key and try again.', 'seller-ledger' ) . '</span>'
 						. '<br>' . self::connect_steps( $key_url );
 
 				case 'billing_locked':
-					return '<span class="sl-status-error">' . esc_html__( 'Your Seller Ledger account is locked. Update your billing to resume syncing orders and calculating sales tax.', 'seller-ledger' ) . '</span>'
-						. ' <a href="' . esc_url( WC_SellerLedger_Integration::app_url() . '/settings/billing' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Update billing', 'seller-ledger' ) . '</a>';
+					return '<span class="sellerledger-status-error">' . esc_html__( 'Your Seller Ledger account is locked. Update your billing to resume syncing orders and calculating sales tax.', 'seller-ledger' ) . '</span>'
+						. ' <a href="' . esc_url( SellerLedger_Integration::app_url() . '/settings/billing' ) . '" target="_blank" rel="noopener">' . esc_html__( 'Update billing', 'seller-ledger' ) . '</a>';
 
 				case 'connection_failed':
-					$desc = '<span class="sl-status-warning">' . esc_html__( 'We reached Seller Ledger but could not finish connecting. Save again in a moment to retry.', 'seller-ledger' ) . '</span>';
+					$desc = '<span class="sellerledger-status-warning">' . esc_html__( 'We reached Seller Ledger but could not finish connecting. Save again in a moment to retry.', 'seller-ledger' ) . '</span>';
 
-					$error = WC_SellerLedger_Connection::last_error();
+					$error = SellerLedger_Connection::last_error();
 					if ( $error && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						$desc .= '<br><code>' . esc_html( $error['message'] ) . '</code>';
 					}
@@ -202,10 +202,10 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 		private static function connected_panel() {
 			$business      = SellerLedger()->business_name();
 			$connection_id = SellerLedger()->connection->get_connection_id();
-			$counts        = WC_SellerLedger_Transaction_Queries::status_counts();
-			$last          = WC_SellerLedger_Transaction_Queries::last_synced_at();
+			$counts        = SellerLedger_Transaction_Queries::status_counts();
+			$last          = SellerLedger_Transaction_Queries::last_synced_at();
 
-			$desc = '<span class="sl-status-connected">&#10004; ' . esc_html__( 'Connected to Seller Ledger.', 'seller-ledger' ) . '</span>';
+			$desc = '<span class="sellerledger-status-connected">&#10004; ' . esc_html__( 'Connected to Seller Ledger.', 'seller-ledger' ) . '</span>';
 
 			if ( $business ) {
 				/* translators: %s: business name (wrapped in a strong tag) */
@@ -224,7 +224,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 
 			if ( $counts['failed'] > 0 ) {
 				/* translators: %s: number of transactions that failed to sync */
-				$stats .= ' &middot; <span class="sl-status-error">' . sprintf( esc_html__( '%s failed', 'seller-ledger' ), esc_html( number_format_i18n( $counts['failed'] ) ) ) . '</span>';
+				$stats .= ' &middot; <span class="sellerledger-status-error">' . sprintf( esc_html__( '%s failed', 'seller-ledger' ), esc_html( number_format_i18n( $counts['failed'] ) ) ) . '</span>';
 			}
 
 			if ( $last ) {
@@ -239,12 +239,12 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 		}
 
 		private static function action_buttons( $connection_id ) {
-			$html = '<p class="sl-actions" style="margin:10px 0">'
-				. '<a href="' . esc_url( WC_SellerLedger_Integration::app_url() . '/dashboard' ) . '" class="button button-primary" target="_blank" rel="noopener">'
+			$html = '<p class="sellerledger-actions" style="margin:10px 0">'
+				. '<a href="' . esc_url( SellerLedger_Integration::app_url() . '/dashboard' ) . '" class="button button-primary" target="_blank" rel="noopener">'
 				. esc_html__( 'Open Seller Ledger dashboard', 'seller-ledger' ) . '</a>';
 
 			if ( $connection_id ) {
-				$html .= ' <a href="' . esc_url( WC_SellerLedger_Integration::app_url() . '/connections/' . rawurlencode( $connection_id ) ) . '" class="button" target="_blank" rel="noopener">'
+				$html .= ' <a href="' . esc_url( SellerLedger_Integration::app_url() . '/connections/' . rawurlencode( $connection_id ) ) . '" class="button" target="_blank" rel="noopener">'
 					. esc_html__( 'View this connection', 'seller-ledger' ) . '</a>';
 			}
 
@@ -256,7 +256,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 				return '';
 			}
 
-			$manage_url = esc_url( WC_SellerLedger_Integration::app_url() . '/taxes/sales' );
+			$manage_url = esc_url( SellerLedger_Integration::app_url() . '/taxes/sales' );
 
 			$collecting  = array();
 			$approaching = array();
@@ -269,7 +269,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 			}
 
 			if ( empty( $collecting ) ) {
-				return '<br><span class="sl-status-warning">'
+				return '<br><span class="sellerledger-status-warning">'
 					. esc_html__( 'Real-time sales tax is on, but you have no established nexus in Seller Ledger, so no sales tax will be collected.', 'seller-ledger' )
 					. ' <a href="' . $manage_url . '" target="_blank" rel="noopener">' . esc_html__( 'Set up your nexus', 'seller-ledger' ) . '</a></span>'
 					. self::nexus_approaching_note( $approaching );
@@ -282,7 +282,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 			/* translators: %d: number of states where the merchant collects sales tax */
 			$heading = sprintf( _n( 'Collecting sales tax in %d state', 'Collecting sales tax in %d states', count( $areas ), 'seller-ledger' ), count( $areas ) );
 
-			$html = '<p class="sl-nexus-heading"><strong>' . esc_html( $heading ) . '</strong> '
+			$html = '<p class="sellerledger-nexus-heading"><strong>' . esc_html( $heading ) . '</strong> '
 				. '(<a href="' . $manage_url . '" target="_blank" rel="noopener">' . esc_html__( 'manage', 'seller-ledger' ) . '</a>)</p>';
 
 			$html .= '<table class="widefat striped" style="max-width:540px">'
@@ -322,7 +322,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 					: esc_html( sprintf( __( '%1$s (%2$d%% of threshold)', 'seller-ledger' ), $name, round( $pct ) ) );
 			}
 
-			return '<p class="sl-nexus-approaching"><em>'
+			return '<p class="sellerledger-nexus-approaching"><em>'
 				. esc_html__( 'Approaching economic nexus:', 'seller-ledger' ) . ' ' . implode( ', ', $parts )
 				. '</em></p>';
 		}
@@ -373,7 +373,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 		private static function connect_url() {
 			$state = wp_create_nonce( 'sellerledger_connect' );
 
-			$return_url = admin_url( 'admin.php?page=wc-settings&tab=' . self::$tab_id . '&sl_connected=1' );
+			$return_url = admin_url( 'admin.php?page=wc-settings&tab=' . self::$tab_id . '&sellerledger_connected=1' );
 
 			// http_build_query (not add_query_arg) so the return_url's own query string
 			// is URL-encoded into a single param instead of leaking to the top level.
@@ -385,11 +385,11 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 				)
 			);
 
-			return WC_SellerLedger_Integration::app_url() . '/connect/woocommerce?' . $query;
+			return SellerLedger_Integration::app_url() . '/connect/woocommerce?' . $query;
 		}
 
 		public static function maybe_consume_handoff() {
-			if ( ! isset( $_GET['sl_connected'] ) ) {
+			if ( ! isset( $_GET['sellerledger_connected'] ) ) {
 				return;
 			}
 
@@ -415,7 +415,7 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 			}
 
 			if ( '' !== $connection_id ) {
-				update_option( WC_SellerLedger_Connection::CONNECTION_ID_OPTION, $connection_id );
+				update_option( SellerLedger_Connection::CONNECTION_ID_OPTION, $connection_id );
 			}
 
 			wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=' . self::$tab_id ) );
@@ -435,11 +435,11 @@ if ( ! class_exists( 'WC_SellerLedger_Settings' ) ) :
 				$hide_save_button = true; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- WooCommerce core global.
 
 				echo '<h3>' . esc_html__( 'Import historical orders', 'seller-ledger' ) . '</h3>';
-				$backfill = new WC_SellerLedger_Settings_Backfill( SellerLedger()->business );
+				$backfill = new SellerLedger_Settings_Backfill( SellerLedger()->business );
 				$backfill->render();
 
 				echo '<h3>' . esc_html__( 'Transaction history', 'seller-ledger' ) . '</h3>';
-				$queue = new WC_SellerLedger_Settings_Queue();
+				$queue = new SellerLedger_Settings_Queue();
 				$queue->render();
 			}
 		}

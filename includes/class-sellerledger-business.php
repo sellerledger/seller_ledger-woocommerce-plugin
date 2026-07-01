@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Business {
+class SellerLedger_Business {
 	private $integration;
 	private $sync_start_date;
 	private $billing_status;

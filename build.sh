@@ -55,7 +55,11 @@ php "${SCOPER}" add-prefix \
 # 5. Regenerate an optimized autoloader for the scoped vendor.
 cp "${DEPS}/composer.json" "${STAGE}/composer.json"
 ( cd "${STAGE}" && composer dump-autoload --no-dev --classmap-authoritative --no-interaction )
-rm -f "${STAGE}/composer.json"
+
+# 5a. Ship composer.json for dependency transparency (WordPress.org asks for it),
+# stripping the dev-only local path repository so the manifest resolves cleanly
+# via the published VCS tag.
+php -r '$f=$argv[1]; $c=json_decode(file_get_contents($f), true); if (isset($c["repositories"])) { $c["repositories"] = array_values(array_filter($c["repositories"], fn($r) => ($r["type"] ?? "") !== "path")); } file_put_contents($f, json_encode($c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n");' "${STAGE}/composer.json"
 
 # 5b. Strip stray dev files that bundled packages ship in their source.
 find "${STAGE}/vendor" -type d \( -name tests -o -name test -o -name .github -o -name docs \) -prune -exec rm -rf {} + 2>/dev/null || true

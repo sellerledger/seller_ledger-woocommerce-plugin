@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Cart_Tax_Request {
+class SellerLedger_Cart_Tax_Request {
 
 	const SUPPORTED_COUNTRIES      = array( 'US' );
 	const MARKETPLACE_REMITTED_TAX = false;
@@ -54,7 +54,7 @@ class WC_SellerLedger_Cart_Tax_Request {
 	}
 
 	public function cache_key() {
-		return 'sl_tax_' . md5( wp_json_encode( $this->canonical() ) );
+		return 'sellerledger_tax_' . md5( wp_json_encode( $this->canonical() ) );
 	}
 
 	public static function build_params( array $address, array $lines, array $totals ) {

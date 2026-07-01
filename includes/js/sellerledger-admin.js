@@ -2,7 +2,7 @@ jQuery( document ).ready(
 	function ( $ ) {
 		var SellerLedgerAdmin = ( function ( $ ) {
 			var setup = function () {
-				$( 'button.js-wc-sellerledger-transaction-sync' )
+				$( 'button.js-sellerledger-transaction-sync' )
 					.off( 'click', instigateSync )
 					.on( 'click', instigateSync );
 			};
@@ -11,7 +11,7 @@ jQuery( document ).ready(
 				e.preventDefault();
 
 				var button = $( e.currentTarget );
-				var status = $( '.js-wc-sellerledger-sync-status' );
+				var status = $( '.js-sellerledger-sync-status' );
 
 				button.prop( 'disabled', true );
 				status.text( 'Starting import…' );
@@ -20,10 +20,10 @@ jQuery( document ).ready(
 					{
 						method: 'POST',
 						dataType: 'json',
-						url: woocommerce_sellerledger_admin.ajax_url,
+						url: sellerledger_admin_data.ajax_url,
 						data: {
-							action: 'wc_sellerledger_run_transaction_sync',
-							security: woocommerce_sellerledger_admin.transaction_sync_nonce,
+							action: 'sellerledger_run_transaction_sync',
+							security: sellerledger_admin_data.transaction_sync_nonce,
 							start_date: $( 'input#start_date' ).val(),
 							end_date: $( 'input#end_date' ).val()
 						}

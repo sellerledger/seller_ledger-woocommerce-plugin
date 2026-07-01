@@ -29,7 +29,7 @@ WooCommerce.
 - `wp-env start` → store at http://localhost:8888/wp-admin (admin / password); activate Seller Ledger
 - To point the plugin at a **local Seller Ledger Rails app** instead of production, copy
   `.wp-env.override.json.example` to `.wp-env.override.json` (gitignored) — it sets
-  `SELLERLEDGER_APP_URL`. The plugin reads this via `WC_SellerLedger_Integration::app_url()` /
+  `SELLERLEDGER_APP_URL`. The plugin reads this via `SellerLedger_Integration::app_url()` /
   `::api_client()` (also overridable with the `sellerledger_app_url` filter), so the connect link
   and every API call hit your local app.
 - `wp-env run cli wp ...` runs WP-CLI; `wp-env stop` / `wp-env destroy` to tear down.
@@ -87,9 +87,16 @@ These are the authorities; when in doubt, follow the link, not memory.
   per WPCS. Run `phpcbf` then hand-fix the rest.
 - **PHPDoc blocks** on classes/methods are expected (this is WordPress, not the Rails repo — do
   not strip comments here).
-- **Prefix everything**: classes `WC_SellerLedger_*`, functions/hooks/options `sellerledger`/
-  `wc_sellerledger`, constants `SELLERLEDGER_*`. Text domain is **`seller-ledger`** (must match
-  the plugin slug) — every `__()`/`_e()`/`esc_html__()` uses it.
+- **Prefix everything with a plugin-unique prefix — WordPress.org REJECTS common prefixes.**
+  Classes `SellerLedger_*`, functions/hooks/options/transients/script+style handles/AJAX actions
+  (`add_action( 'wp_ajax_...' )`) all `sellerledger_*`, constants `SELLERLEDGER_*`. **Never** use
+  `WC_`, `wc_`, `woocommerce_`, or any prefix under 4 characters (e.g. `sl_`, `sl-`) — the review
+  tool flags them as collisions and pends the submission. The only unavoidable exception is the
+  WooCommerce-core-generated integration settings option (`woocommerce_{id}_settings`), which
+  `WC_Integration` names for us. Class **filenames must match the class**:
+  `class-sellerledger-<name>.php` for `SellerLedger_<Name>` (phpcs `InvalidClassFileName` enforces
+  this). Text domain is **`seller-ledger`** (must match the plugin slug) — every
+  `__()`/`_e()`/`esc_html__()` uses it.
 - **Escape on output** (`esc_html`, `esc_attr`, `esc_url`, `wp_kses_post`), **sanitize on input**
   (`sanitize_text_field` after `wp_unslash`), **verify nonces + capabilities** on every form/AJAX
   handler (`check_admin_referer`, `current_user_can( 'manage_woocommerce' )`).
@@ -98,7 +105,7 @@ These are the authorities; when in doubt, follow the link, not memory.
 - **No `error_log` in shipped code** — use `wc_get_logger()` (see `Integration::log()`).
 - **Don't swallow API errors silently.** Catch `SellerLedger\Exception`, surface the failure to
   the user (settings) or fall back safely (checkout), and log it.
-- **Bump versions together**: the plugin header `Version`, `WC_SellerLedger::$version`, and
+- **Bump versions together**: the plugin header `Version`, `SellerLedger_Plugin::$version`, and
   `readme.txt` `Stable tag` must always agree.
 
 ## Dogfood the PHP client
@@ -112,8 +119,8 @@ constraint here and `composer update sellerledger/seller_ledger-php`.
 
 ## Architecture
 
-- **Entry**: `sellerledger-woocommerce.php` bootstraps `WC_SellerLedger`, which `include_once`s
-  `includes/` and registers the WooCommerce integration. `WC_SellerLedger_Integration` is the
+- **Entry**: `sellerledger-woocommerce.php` bootstraps `SellerLedger_Plugin`, which `include_once`s
+  `includes/` and registers the WooCommerce integration. `SellerLedger_Integration` is the
   singleton wiring (`->token`, `->connection`, `->business`, `->transaction_sync`,
   `->tax_calculator`); access it via `SellerLedger()`.
 - **Onboarding/connection**: `Settings` renders the WooCommerce settings tab; `Token` wraps the
@@ -138,6 +145,10 @@ constraint here and `composer update sellerledger/seller_ledger-php`.
 client). Run `./build.sh` — it installs `--no-dev`, runs **PHP-Scoper** (`scoper.inc.php`) to
 namespace the bundled libraries under `SellerLedger\Vendor` so they can't collide with other
 plugins' Guzzle, regenerates the autoloader, and zips `dist/seller-ledger.zip` excluding
-`composer.*`, `phpcs.xml.dist`, `tests/`, `scoper.inc.php`, `.git`, and the `assets/` screenshots
-(those go in the SVN `assets/` dir, not the plugin zip). The plugin-facing `SellerLedger\` client
-namespace is intentionally left global so plugin code keeps calling `SellerLedger\Client`.
+`composer.lock`, `phpcs.xml.dist`, `tests/`, `scoper.inc.php`, `.git`, and the `assets/`
+screenshots (those go in the SVN `assets/` dir, not the plugin zip). It **ships `composer.json`**
+(WordPress.org asks for it when Composer is used, for dependency transparency), stripping only the
+dev-only local `path` repository so the manifest resolves via the published VCS tag. The
+plugin-facing `SellerLedger\` client namespace is intentionally left global so plugin code keeps
+calling `SellerLedger\Client`. **`build.sh` archives `git HEAD`**, so commit before building — it
+won't pick up uncommitted working-tree changes.

@@ -2,17 +2,17 @@
 /**
  * Seller Ledger AJAX actions.
  *
- * @package WC_SellerLedger_Integration
+ * @package SellerLedger_Integration
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_AJAX {
+class SellerLedger_AJAX {
 
 	public function __construct() {
-		add_action( 'wp_ajax_wc_sellerledger_run_transaction_sync', array( $this, 'run_transaction_sync' ) );
+		add_action( 'wp_ajax_sellerledger_run_transaction_sync', array( $this, 'run_transaction_sync' ) );
 	}
 
 	public function run_transaction_sync() {
@@ -52,4 +52,4 @@ class WC_SellerLedger_AJAX {
 	}
 }
 
-new WC_SellerLedger_AJAX();
+new SellerLedger_AJAX();

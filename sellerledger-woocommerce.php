@@ -25,19 +25,19 @@ defined( 'ABSPATH' ) || exit;
 // network), so this also covers the WooCommerce-inactive case without the
 // multisite-unsafe active_plugins lookup. WP enforces activation order via the
 // Requires Plugins header.
-if ( version_compare( (string) get_option( 'woocommerce_db_version' ), WC_SellerLedger::$minimum_woocommerce_version, '<' ) ) {
-	add_action( 'admin_notices', 'WC_SellerLedger::display_inactive_notice' );
+if ( version_compare( (string) get_option( 'woocommerce_db_version' ), SellerLedger_Plugin::$minimum_woocommerce_version, '<' ) ) {
+	add_action( 'admin_notices', 'SellerLedger_Plugin::display_inactive_notice' );
 	return;
 }
 
 if ( ! file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
-	add_action( 'admin_notices', array( 'WC_SellerLedger', 'display_missing_dependencies_notice' ) );
+	add_action( 'admin_notices', array( 'SellerLedger_Plugin', 'display_missing_dependencies_notice' ) );
 	return;
 }
 
 require __DIR__ . '/vendor/autoload.php';
 
-final class WC_SellerLedger {
+final class SellerLedger_Plugin {
 
 	public static $version                     = '0.1.0';
 	public static $minimum_woocommerce_version = '8.8.0';
@@ -59,30 +59,30 @@ final class WC_SellerLedger {
 	}
 
 	public static function deactivate() {
-		include_once __DIR__ . '/includes/class-wc-sellerledger-transaction-sync.php';
-		WC_SellerLedger_Transaction_Sync::unschedule();
+		include_once __DIR__ . '/includes/class-sellerledger-transaction-sync.php';
+		SellerLedger_Transaction_Sync::unschedule();
 	}
 
 	public function init() {
 		if ( class_exists( 'WC_Integration' ) ) {
-			include_once 'includes/class-wc-sellerledger-logger.php';
-			include_once 'includes/class-wc-sellerledger-business.php';
-			include_once 'includes/class-wc-sellerledger-connection.php';
-			include_once 'includes/class-wc-sellerledger-token.php';
-			include_once 'includes/class-wc-sellerledger-integration.php';
-			include_once 'includes/class-wc-sellerledger-settings.php';
-			include_once 'includes/class-wc-sellerledger-settings-queue.php';
-			include_once 'includes/class-wc-sellerledger-settings-backfill.php';
-			include_once 'includes/class-wc-sellerledger-ajax.php';
-			include_once 'includes/class-wc-sellerledger-install.php';
-			include_once 'includes/class-wc-sellerledger-transaction.php';
-			include_once 'includes/class-wc-sellerledger-transaction-order.php';
-			include_once 'includes/class-wc-sellerledger-transaction-refund.php';
-			include_once 'includes/class-wc-sellerledger-transaction-queries.php';
-			include_once 'includes/class-wc-sellerledger-transaction-sync.php';
-			include_once 'includes/class-wc-sellerledger-cart-tax-request.php';
-			include_once 'includes/class-wc-sellerledger-tax-calculator.php';
-			include_once 'includes/class-wc-sellerledger-order-status.php';
+			include_once 'includes/class-sellerledger-logger.php';
+			include_once 'includes/class-sellerledger-business.php';
+			include_once 'includes/class-sellerledger-connection.php';
+			include_once 'includes/class-sellerledger-token.php';
+			include_once 'includes/class-sellerledger-integration.php';
+			include_once 'includes/class-sellerledger-settings.php';
+			include_once 'includes/class-sellerledger-settings-queue.php';
+			include_once 'includes/class-sellerledger-settings-backfill.php';
+			include_once 'includes/class-sellerledger-ajax.php';
+			include_once 'includes/class-sellerledger-install.php';
+			include_once 'includes/class-sellerledger-transaction.php';
+			include_once 'includes/class-sellerledger-transaction-order.php';
+			include_once 'includes/class-sellerledger-transaction-refund.php';
+			include_once 'includes/class-sellerledger-transaction-queries.php';
+			include_once 'includes/class-sellerledger-transaction-sync.php';
+			include_once 'includes/class-sellerledger-cart-tax-request.php';
+			include_once 'includes/class-sellerledger-tax-calculator.php';
+			include_once 'includes/class-sellerledger-order-status.php';
 
 			add_action( 'woocommerce_integrations_init', array( $this, 'add_integration' ), 20 );
 		}
@@ -118,8 +118,8 @@ final class WC_SellerLedger {
 	}
 }
 
-new WC_SellerLedger();
+new SellerLedger_Plugin();
 
 function SellerLedger() {
-	return WC_SellerLedger_Integration::instance();
+	return SellerLedger_Integration::instance();
 }

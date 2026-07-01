@@ -3,9 +3,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
+if ( ! class_exists( 'SellerLedger_Integration' ) ) :
 
-	class WC_SellerLedger_Integration {
+	class SellerLedger_Integration {
 		protected static $instance = null;
 		public static $app_url     = 'https://app.sellerledger.com';
 
@@ -103,7 +103,7 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 				$data = wp_json_encode( $data );
 			}
 
-			WC_SellerLedger_Logger::error( $data );
+			SellerLedger_Logger::error( $data );
 		}
 
 		public function __construct() {
@@ -111,13 +111,13 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 		}
 
 		public function init() {
-			$this->settings         = WC_SellerLedger_Settings::init();
-			$this->token            = WC_SellerLedger_Token::init( $this->settings::api_token() );
-			$this->connection       = WC_SellerLedger_Connection::init( $this->token );
-			$this->business         = WC_SellerLedger_Business::init( $this );
-			$this->transaction_sync = WC_SellerLedger_Transaction_Sync::init( $this );
-			$this->tax_calculator   = WC_SellerLedger_Tax_Calculator::init( $this );
-			WC_SellerLedger_Order_Status::init( $this );
+			$this->settings         = SellerLedger_Settings::init();
+			$this->token            = SellerLedger_Token::init( $this->settings::api_token() );
+			$this->connection       = SellerLedger_Connection::init( $this->token );
+			$this->business         = SellerLedger_Business::init( $this );
+			$this->transaction_sync = SellerLedger_Transaction_Sync::init( $this );
+			$this->tax_calculator   = SellerLedger_Tax_Calculator::init( $this );
+			SellerLedger_Order_Status::init( $this );
 
 			if ( is_admin() ) {
 				add_action( 'admin_enqueue_scripts', array( $this, 'load_admin_assets' ) );
@@ -134,13 +134,13 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 				return;
 			}
 
-			// The status colors (sl-status-*) are used both in the settings panel
+			// The status colors (sellerledger-status-*) are used both in the settings panel
 			// and in the per-order status meta box, so the stylesheet loads on both.
 			wp_enqueue_style(
-				'wc-sellerledger-admin',
-				plugin_dir_url( __FILE__ ) . 'css/wc-sellerledger-admin.css',
+				'sellerledger-admin',
+				plugin_dir_url( __FILE__ ) . 'css/sellerledger-admin.css',
 				array(),
-				WC_SellerLedger::$version
+				SellerLedger_Plugin::$version
 			);
 
 			// The import/sync script is only needed on the settings screen.
@@ -149,23 +149,23 @@ if ( ! class_exists( 'WC_SellerLedger_Integration' ) ) :
 			}
 
 			wp_register_script(
-				'wc-sellerledger-admin',
-				plugin_dir_url( __FILE__ ) . 'js/wc-sellerledger-admin.js',
+				'sellerledger-admin',
+				plugin_dir_url( __FILE__ ) . 'js/sellerledger-admin.js',
 				array( 'jquery' ),
-				WC_SellerLedger::$version,
+				SellerLedger_Plugin::$version,
 				true
 			);
 
 			wp_localize_script(
-				'wc-sellerledger-admin',
-				'woocommerce_sellerledger_admin',
+				'sellerledger-admin',
+				'sellerledger_admin_data',
 				array(
 					'ajax_url'               => admin_url( 'admin-ajax.php' ),
 					'transaction_sync_nonce' => wp_create_nonce( 'sellerledger-transaction-sync' ),
 				)
 			);
 
-			wp_enqueue_script( 'wc-sellerledger-admin' );
+			wp_enqueue_script( 'sellerledger-admin' );
 		}
 
 		/**

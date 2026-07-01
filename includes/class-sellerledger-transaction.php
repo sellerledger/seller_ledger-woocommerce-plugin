@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-abstract class WC_SellerLedger_Transaction {
+abstract class SellerLedger_Transaction {
 
 	public $id;
 	public $record_id;
@@ -234,7 +234,7 @@ abstract class WC_SellerLedger_Transaction {
 		$this->order->save_meta_data();
 		$this->save();
 
-		WC_SellerLedger_Logger::info(
+		SellerLedger_Logger::info(
 			'Synced ' . $this->record_type . ' #' . $this->record_id,
 			array(
 				'record_id' => $this->record_id,
@@ -263,9 +263,9 @@ abstract class WC_SellerLedger_Transaction {
 			'retry'     => $this->retry_count,
 		);
 		if ( 'failed' === $this->status ) {
-			WC_SellerLedger_Logger::error( 'Sync failed permanently: ' . $reason, $context );
+			SellerLedger_Logger::error( 'Sync failed permanently: ' . $reason, $context );
 		} else {
-			WC_SellerLedger_Logger::warning( 'Sync failed, will retry: ' . $reason, $context );
+			SellerLedger_Logger::warning( 'Sync failed, will retry: ' . $reason, $context );
 		}
 	}
 

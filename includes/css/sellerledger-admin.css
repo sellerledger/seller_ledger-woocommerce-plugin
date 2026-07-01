@@ -6,19 +6,19 @@
  */
 
 /* 1. Connection status */
-.sl-status-connected {
+.sellerledger-status-connected {
 	color: #1a7f37;
 }
 
-.sl-status-error {
+.sellerledger-status-error {
 	color: #d63638;
 }
 
-.sl-status-warning {
+.sellerledger-status-warning {
 	color: #bd8600;
 }
 
 /* 2. Import status */
-.sl-sync-status {
+.sellerledger-sync-status {
 	margin-left: 8px;
 }

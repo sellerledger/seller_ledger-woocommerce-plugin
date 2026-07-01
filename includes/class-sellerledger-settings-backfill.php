@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-class WC_SellerLedger_Settings_Backfill {
+class SellerLedger_Settings_Backfill {
 	private $business;
 
 	public function __construct( $business ) {
@@ -31,8 +31,8 @@ class WC_SellerLedger_Settings_Backfill {
 			<input type="text" class="sellerledger-datepicker" name="end_date" id="end_date" value="<?php echo esc_attr( $current_date ); ?>" placeholder="YYYY-MM-DD" pattern="[0-9]{4}-(0[1-9]|1[012])-(0[1-9]|1[0-9]|2[0-9]|3[01])">
 		</p>
 		<p>
-			<button class="button button-primary js-wc-sellerledger-transaction-sync"><?php esc_html_e( 'Import transactions', 'seller-ledger' ); ?></button>
-			<span class="js-wc-sellerledger-sync-status sl-sync-status"></span>
+			<button class="button button-primary js-sellerledger-transaction-sync"><?php esc_html_e( 'Import transactions', 'seller-ledger' ); ?></button>
+			<span class="js-sellerledger-sync-status sellerledger-sync-status"></span>
 		</p>
 		<?php
 	}
