@@ -164,6 +164,7 @@ if ( ! class_exists( 'SellerLedger_Integration' ) ) :
 				array(
 					'ajax_url'               => admin_url( 'admin-ajax.php' ),
 					'transaction_sync_nonce' => wp_create_nonce( 'sellerledger-transaction-sync' ),
+					'disconnect_confirm'     => __( 'Disconnect this store from Seller Ledger? New orders stop syncing. Everything already in Seller Ledger stays there.', 'seller-ledger' ),
 				)
 			);
 

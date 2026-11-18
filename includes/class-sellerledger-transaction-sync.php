@@ -18,7 +18,15 @@ class SellerLedger_Transaction_Sync {
 	public static function init( $integration ) {
 		$instance = new self( $integration );
 		$instance->add_hooks();
-		$instance->initial_backfill();
+
+		// The integration loads before Action Scheduler's data store is ready, and a job
+		// scheduled before then is dropped, so the first backfill waits for it.
+		if ( did_action( 'action_scheduler_init' ) ) {
+			$instance->initial_backfill();
+		} else {
+			add_action( 'action_scheduler_init', array( $instance, 'initial_backfill' ) );
+		}
+
 		return $instance;
 	}
 

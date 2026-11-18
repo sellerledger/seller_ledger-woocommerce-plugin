@@ -250,9 +250,7 @@ if ( ! class_exists( 'SellerLedger_Settings' ) ) :
 			}
 
 			$disconnect_url = wp_nonce_url( admin_url( 'admin-post.php?action=sellerledger_disconnect' ), 'sellerledger_disconnect' );
-			$confirm        = esc_js( __( 'Disconnect this store from Seller Ledger? New orders stop syncing. Everything already in Seller Ledger stays there.', 'seller-ledger' ) );
-
-			$html .= ' <a href="' . esc_url( $disconnect_url ) . '" class="button sellerledger-disconnect" onclick="return confirm(\'' . $confirm . '\');">'
+			$html          .= ' <a href="' . esc_url( $disconnect_url ) . '" class="button sellerledger-disconnect">'
 				. esc_html__( 'Disconnect', 'seller-ledger' ) . '</a>';
 
 			return $html . '</p>';
