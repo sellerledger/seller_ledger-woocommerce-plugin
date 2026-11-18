@@ -7,8 +7,11 @@ class SellerLedger_Connection {
 	private $token;
 	private $connection_id;
 
-	const CONNECTION_ID_OPTION = 'sellerledger-connection-id';
-	const ERROR_TRANSIENT      = 'sellerledger_connection_error';
+	const CONNECTION_ID_OPTION  = 'sellerledger-connection-id';
+	const CONNECTED_USER_OPTION = 'sellerledger-connected-user-id';
+	const ERROR_TRANSIENT       = 'sellerledger_connection_error';
+	const KIND                  = 'sales_channel';
+	const PLATFORM              = 'woocommerce';
 
 	public static function init( $token ) {
 		$instance = new self( $token );
@@ -18,6 +21,48 @@ class SellerLedger_Connection {
 
 	public static function destroy() {
 		delete_option( self::CONNECTION_ID_OPTION );
+		delete_option( self::CONNECTED_USER_OPTION );
+	}
+
+	/**
+	 * The store's identity in Seller Ledger: its host, which is also what the one-click
+	 * connect uses, so both ways of connecting land on the same connection.
+	 *
+	 * @return string
+	 */
+	public static function store_host() {
+		$host = wp_parse_url( home_url(), PHP_URL_HOST );
+		return is_string( $host ) && '' !== $host ? $host : sanitize_title( get_bloginfo( 'name' ) );
+	}
+
+	/**
+	 * Store a connection id. When it differs from the one already stored, the sync history
+	 * belongs to another connection, so it is cleared and the store's history is sent again.
+	 *
+	 * @param string $id Connection id.
+	 */
+	public static function store_connection_id( $id ) {
+		$previous = get_option( self::CONNECTION_ID_OPTION );
+		update_option( self::CONNECTION_ID_OPTION, $id );
+
+		if ( (string) $previous !== (string) $id ) {
+			SellerLedger_Transaction_Queries::clear();
+			SellerLedger_Business::uninstall();
+		}
+	}
+
+	/**
+	 * Remember the admin who connected, so background jobs that read WooCommerce's own
+	 * admin-only data (WooPayments payouts) can act as them.
+	 *
+	 * @param int $user_id WordPress user id.
+	 */
+	public static function remember_user( $user_id ) {
+		update_option( self::CONNECTED_USER_OPTION, (int) $user_id );
+	}
+
+	public static function connected_user_id() {
+		return (int) get_option( self::CONNECTED_USER_OPTION );
 	}
 
 	public function __construct( $token ) {
@@ -33,7 +78,7 @@ class SellerLedger_Connection {
 	}
 
 	public function set_connection_id( $id ) {
-		update_option( self::CONNECTION_ID_OPTION, $id );
+		self::store_connection_id( $id );
 		$this->connection_id = $id;
 		return $id;
 	}
@@ -64,15 +109,23 @@ class SellerLedger_Connection {
 
 		set_transient( 'sellerledger_creating_connection', 'yes', 600 );
 
+		$host    = self::store_host();
 		$details = array(
-			'name'                       => html_entity_decode( get_bloginfo( 'name' ) ),
+			/* translators: %s: the store's domain */
+			'name'                       => sprintf( __( 'WooCommerce (%s)', 'seller-ledger' ), $host ),
 			'balance_sheet_account_type' => 'asset',
+			'kind'                       => self::KIND,
+			'platform'                   => self::PLATFORM,
+			'external_id'                => $host,
 		);
 
 		try {
 			$client   = SellerLedger_Integration::api_client( $this->token->get() );
 			$response = $client->createConnection( $details );
 			$this->set_connection_id( $response->id );
+			if ( is_admin() ) {
+				self::remember_user( get_current_user_id() );
+			}
 			delete_transient( self::ERROR_TRANSIENT );
 		} catch ( SellerLedger\Exception $e ) {
 			$this->record_error( $e );
@@ -83,6 +136,30 @@ class SellerLedger_Connection {
 		delete_transient( 'sellerledger_creating_connection' );
 
 		return $this->has_connection();
+	}
+
+	/**
+	 * Disconnect the store: revoke its key in Seller Ledger and forget the key, the
+	 * connection and the sync history here. The books in Seller Ledger stay.
+	 */
+	public function disconnect() {
+		if ( $this->token->valid() ) {
+			try {
+				SellerLedger_Integration::api_client( $this->token->get() )->revokeApiKey();
+			} catch ( SellerLedger\Exception $e ) {
+				SellerLedger()->log( 'SELLERLEDGER revokeApiKey FAILED: ' . $e->getMessage() );
+			}
+		}
+
+		SellerLedger_Transaction_Sync::unschedule();
+		SellerLedger_WooPayments::unschedule();
+		SellerLedger_Transaction_Queries::clear();
+		SellerLedger_WooPayments::forget();
+		SellerLedger_Business::uninstall();
+		self::destroy();
+		SellerLedger_Settings::destroy();
+		delete_option( SellerLedger_Integration::BUSINESS_NAME_OPTION );
+		$this->connection_id = null;
 	}
 
 	public static function last_error() {

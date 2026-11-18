@@ -28,7 +28,11 @@ class SellerLedger_Transaction_Refund extends SellerLedger_Transaction {
 	}
 
 	public function syncable_status() {
-		return in_array( $this->parent_order->get_status(), self::SYNCABLE_STATUSES, true );
+		return self::paid( $this->parent_order );
+	}
+
+	public function payments() {
+		return SellerLedger_Payments::for_refund( $this->order, $this->parent_order );
 	}
 
 	public function build_params() {
@@ -45,6 +49,7 @@ class SellerLedger_Transaction_Refund extends SellerLedger_Transaction {
 			'shipping_amount'          => $this->order->get_shipping_total(),
 			'discount_amount'          => $this->order->get_discount_total(),
 			'tax_amount'               => $this->order->get_total_tax(),
+			'payments'                 => $this->payments(),
 		);
 
 		if ( count( $items_params ) > 0 ) {

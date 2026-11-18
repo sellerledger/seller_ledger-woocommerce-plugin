@@ -20,6 +20,7 @@ if ( ! class_exists( 'SellerLedger_Integration' ) ) :
 		public $business;
 		public $transaction_sync;
 		public $tax_calculator;
+		public $woopayments;
 
 		private $business_data;
 		private $business_data_loaded = false;
@@ -117,6 +118,7 @@ if ( ! class_exists( 'SellerLedger_Integration' ) ) :
 			$this->business         = SellerLedger_Business::init( $this );
 			$this->transaction_sync = SellerLedger_Transaction_Sync::init( $this );
 			$this->tax_calculator   = SellerLedger_Tax_Calculator::init( $this );
+			$this->woopayments      = SellerLedger_WooPayments::init( $this );
 			SellerLedger_Order_Status::init( $this );
 
 			if ( is_admin() ) {

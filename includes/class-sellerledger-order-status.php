@@ -43,7 +43,7 @@ class SellerLedger_Order_Status {
 		$transaction = SellerLedger_Transaction_Order::build( array( 'record_id' => $order->get_id() ) );
 
 		if ( ! $transaction->syncable_status() ) {
-			return '<p>' . esc_html__( 'This order will sync to Seller Ledger once it is marked completed.', 'seller-ledger' ) . '</p>';
+			return '<p>' . esc_html__( 'This order will sync to Seller Ledger once it is paid.', 'seller-ledger' ) . '</p>';
 		}
 
 		if ( ! $transaction->required_fields_present() ) {
