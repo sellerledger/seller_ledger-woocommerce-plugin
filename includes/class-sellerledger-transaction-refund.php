@@ -83,8 +83,6 @@ class SellerLedger_Transaction_Refund extends SellerLedger_Transaction {
 			'total_amount'             => $this->order->get_total(),
 			'items_subtotal'           => $this->items_subtotal(),
 			'ship_to_country_code'     => $ship['country'],
-			'ship_to_state'            => $ship['state'],
-			'ship_to_zip'              => $ship['zip'],
 		);
 	}
 

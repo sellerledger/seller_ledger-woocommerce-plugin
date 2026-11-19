@@ -168,11 +168,16 @@ abstract class SellerLedger_Transaction {
 			);
 		}
 
-		return array(
-			'country' => $order->get_billing_country(),
-			'state'   => $order->get_billing_state(),
-			'zip'     => $order->get_billing_postcode(),
-		);
+		if ( '' !== $order->get_billing_country() ) {
+			return array(
+				'country' => $order->get_billing_country(),
+				'state'   => $order->get_billing_state(),
+				'zip'     => $order->get_billing_postcode(),
+			);
+		}
+
+		// An order with no address at all, such as one entered by hand, was sold at the store.
+		return self::store_address();
 	}
 
 	private static function is_local_pickup( $order ) {
