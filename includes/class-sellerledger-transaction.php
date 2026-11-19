@@ -19,7 +19,7 @@ abstract class SellerLedger_Transaction {
 	public $order;
 	public $loaded = false;
 
-	const SYNCABLE_STATUSES = array( 'completed', 'refunded' );
+	const UNPAID_STATUSES = array( 'pending', 'failed', 'cancelled', 'checkout-draft', 'trash' );
 
 	public static function table_name() {
 		global $wpdb;
@@ -95,7 +95,7 @@ abstract class SellerLedger_Transaction {
 		return array(
 			'id'               => $this->record_id,
 			'transaction_id'   => $this->record_id,
-			'transaction_date' => "{$this->order->get_date_completed()}",
+			'transaction_date' => "{$this->order->get_date_created()}",
 			'currency_code'    => $this->order->get_currency(),
 			'total_amount'     => $this->order->get_total(),
 			'items_subtotal'   => $this->items_subtotal(),
@@ -103,7 +103,31 @@ abstract class SellerLedger_Transaction {
 			'discount_amount'  => $this->order->get_discount_total(),
 			'tax_amount'       => $this->order->get_total_tax(),
 			'items'            => $items_params,
+			'payments'         => $this->payments(),
 		);
+	}
+
+	/**
+	 * Whether an order has been paid and still stands, which is when Seller Ledger books it.
+	 *
+	 * @param WC_Order $order The order.
+	 * @return bool
+	 */
+	public static function paid( $order ) {
+		if ( in_array( $order->get_status(), self::UNPAID_STATUSES, true ) ) {
+			return false;
+		}
+
+		return null !== $order->get_date_paid() || 'refunded' === $order->get_status();
+	}
+
+	/**
+	 * How the transaction was paid, in the shape the API takes.
+	 *
+	 * @return array
+	 */
+	public function payments() {
+		return array();
 	}
 
 	public function items_subtotal() {
@@ -144,11 +168,16 @@ abstract class SellerLedger_Transaction {
 			);
 		}
 
-		return array(
-			'country' => $order->get_billing_country(),
-			'state'   => $order->get_billing_state(),
-			'zip'     => $order->get_billing_postcode(),
-		);
+		if ( '' !== $order->get_billing_country() ) {
+			return array(
+				'country' => $order->get_billing_country(),
+				'state'   => $order->get_billing_state(),
+				'zip'     => $order->get_billing_postcode(),
+			);
+		}
+
+		// An order with no address at all, such as one entered by hand, was sold at the store.
+		return self::store_address();
 	}
 
 	private static function is_local_pickup( $order ) {

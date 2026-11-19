@@ -21,6 +21,7 @@ if ( ! class_exists( 'SellerLedger_Settings' ) ) :
 			add_action( 'woocommerce_settings_save_' . self::$tab_id, array( __CLASS__, 'save' ) );
 			add_filter( 'woocommerce_admin_settings_sanitize_option_' . self::get_stored_settings_identifier(), array( __CLASS__, 'sanitize' ), 10, 2 );
 			add_action( 'admin_init', array( __CLASS__, 'maybe_consume_handoff' ) );
+			add_action( 'admin_post_sellerledger_disconnect', array( __CLASS__, 'disconnect' ) );
 		}
 
 		public static function get_stored_settings_identifier() {
@@ -248,7 +249,27 @@ if ( ! class_exists( 'SellerLedger_Settings' ) ) :
 					. esc_html__( 'View this connection', 'seller-ledger' ) . '</a>';
 			}
 
+			$disconnect_url = wp_nonce_url( admin_url( 'admin-post.php?action=sellerledger_disconnect' ), 'sellerledger_disconnect' );
+			$html          .= ' <a href="' . esc_url( $disconnect_url ) . '" class="button sellerledger-disconnect">'
+				. esc_html__( 'Disconnect', 'seller-ledger' ) . '</a>';
+
 			return $html . '</p>';
+		}
+
+		/**
+		 * Disconnect the store, from the settings screen's Disconnect button.
+		 */
+		public static function disconnect() {
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				wp_die( esc_html__( 'You do not have permission to do that.', 'seller-ledger' ) );
+			}
+
+			check_admin_referer( 'sellerledger_disconnect' );
+
+			SellerLedger()->connection->disconnect();
+
+			wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=' . self::$tab_id ) );
+			exit;
 		}
 
 		private static function nexus_summary() {
@@ -415,7 +436,8 @@ if ( ! class_exists( 'SellerLedger_Settings' ) ) :
 			}
 
 			if ( '' !== $connection_id ) {
-				update_option( SellerLedger_Connection::CONNECTION_ID_OPTION, $connection_id );
+				SellerLedger_Connection::store_connection_id( $connection_id );
+				SellerLedger_Connection::remember_user( get_current_user_id() );
 			}
 
 			wp_safe_redirect( admin_url( 'admin.php?page=wc-settings&tab=' . self::$tab_id ) );

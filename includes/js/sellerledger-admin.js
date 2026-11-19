@@ -5,6 +5,16 @@ jQuery( document ).ready(
 				$( 'button.js-sellerledger-transaction-sync' )
 					.off( 'click', instigateSync )
 					.on( 'click', instigateSync );
+
+				$( 'a.sellerledger-disconnect' )
+					.off( 'click', confirmDisconnect )
+					.on( 'click', confirmDisconnect );
+			};
+
+			var confirmDisconnect = function ( e ) {
+				if ( ! window.confirm( sellerledger_admin_data.disconnect_confirm ) ) {
+					e.preventDefault();
+				}
 			};
 
 			var instigateSync = function ( e ) {

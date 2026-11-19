@@ -3,7 +3,7 @@ Contributors: sellerledger
 Tags: woocommerce, accounting, bookkeeping, sales tax, ecommerce
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 0.1.1
+Stable tag: 0.2.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -14,7 +14,7 @@ Automated bookkeeping and sales tax for WooCommerce. Sync orders to Seller Ledge
 
 Tracking finances and preparing for taxes is a hassle for any business, but for eCommerce sellers it's a nightmare. **Seller Ledger** is simple, automated accounting built specifically for online and marketplace sellers — and this plugin connects your WooCommerce store to it.
 
-Once connected, your completed WooCommerce orders and refunds flow into Seller Ledger automatically, and you can calculate and collect jurisdiction-level sales tax in real time at checkout.
+Once connected, your paid WooCommerce orders and refunds flow into Seller Ledger automatically, and you can calculate and collect jurisdiction-level sales tax in real time at checkout.
 
 = Automated bookkeeping =
 
@@ -44,7 +44,8 @@ Once connected, your completed WooCommerce orders and refunds flow into Seller L
 = How the WooCommerce plugin works =
 
 * One-click connect from Seller Ledger provisions your API key and connection — no copy-pasting keys.
-* Completed orders and refunds sync automatically in the background.
+* Paid orders and refunds sync automatically in the background, with how each was paid, so Seller Ledger can match them to your Stripe, PayPal or WooPayments records.
+* If you use WooPayments, its payouts and fees are sent too, so each payout reconciles against the orders it paid out.
 * Turn on real-time sales tax to calculate tax at checkout for the states where you have established nexus; other destinations are left untaxed.
 * See your connection status, sync history, and the states you're collecting in right from WooCommerce settings, and re-import historical orders on demand.
 
@@ -54,13 +55,18 @@ Seller Ledger was built by founders who ran product and engineering at TaxJar. T
 
 This plugin connects your store to Seller Ledger, a third-party bookkeeping service, so it can
 record your sales and calculate sales tax. This connection is opt-in: nothing is sent until you
-connect your Seller Ledger account, and you can disconnect at any time by removing the plugin or
-clearing your API key in the plugin settings.
+connect your Seller Ledger account, and you can disconnect at any time with the Disconnect button in
+the plugin settings, which also revokes the plugin's API key.
 
 When connected, the plugin sends the following to the Seller Ledger API (https://app.sellerledger.com):
 
-- Completed orders and refunds (order totals, line items, shipping, discounts, taxes, the buyer
+- Paid orders and refunds (order totals, line items, shipping, discounts, taxes, the buyer
   name, and the ship-to country, state, and postal code) so they can be recorded in your books.
+- How each order was paid or refunded: the payment method, the amount and date, and the payment
+  processor's transaction ids (for example a Stripe charge id), so Seller Ledger can match the order
+  to that processor's records.
+- If WooPayments is active: its payouts and the transactions in each payout (amounts, fees,
+  and the WooPayments transaction and payment ids), read from WooPayments in your store.
 - For real-time sales tax (only when you enable it), the cart contents and the customer's
   ship-to address at checkout, so tax can be calculated.
 
@@ -120,6 +126,14 @@ you can reconcile them and close your books each period.
 3. Open the Seller Ledger panel in WooCommerce > Settings and click Connect, or paste your API key.
 
 == Changelog ==
+
+= 0.2.0 =
+* Orders sync once they are paid, dated when they were placed, instead of waiting for them to be marked completed
+* Each order and refund says how it was paid (Stripe, WooPayments, PayPal, Square, cash, and more) so Seller Ledger can book it to that processor and match it to the processor's own records
+* WooPayments payouts, with their fees, are sent to Seller Ledger so they reconcile against your orders
+* Fix: orders queued for sync were never sent by the background job
+* A Disconnect button that revokes the plugin's API key
+* Pasting an API key now connects to the same Seller Ledger connection as one-click connect, and reconnecting resends the store's history to the new connection
 
 = 0.1.1 =
 * Prefix all class, function, hook, option, transient, and asset names uniquely (SellerLedger_/sellerledger_) to avoid collisions with other plugins

@@ -5,7 +5,7 @@
  * Description: Sync your WooCommerce orders and refunds to Seller Ledger and calculate sales tax at checkout.
  * Author: Seller Ledger
  * Author URI: https://www.sellerledger.com
- * Version: 0.1.1
+ * Version: 0.2.0
  * Requires at least: 6.5
  * Requires PHP: 8.0
  * Requires Plugins: woocommerce
@@ -39,7 +39,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 final class SellerLedger_Plugin {
 
-	public static $version                     = '0.1.1';
+	public static $version                     = '0.2.0';
 	public static $minimum_woocommerce_version = '8.8.0';
 
 	public function __construct() {
@@ -60,7 +60,9 @@ final class SellerLedger_Plugin {
 
 	public static function deactivate() {
 		include_once __DIR__ . '/includes/class-sellerledger-transaction-sync.php';
+		include_once __DIR__ . '/includes/class-sellerledger-woopayments.php';
 		SellerLedger_Transaction_Sync::unschedule();
+		SellerLedger_WooPayments::unschedule();
 	}
 
 	public function init() {
@@ -80,6 +82,8 @@ final class SellerLedger_Plugin {
 			include_once 'includes/class-sellerledger-transaction-refund.php';
 			include_once 'includes/class-sellerledger-transaction-queries.php';
 			include_once 'includes/class-sellerledger-transaction-sync.php';
+			include_once 'includes/class-sellerledger-payments.php';
+			include_once 'includes/class-sellerledger-woopayments.php';
 			include_once 'includes/class-sellerledger-cart-tax-request.php';
 			include_once 'includes/class-sellerledger-tax-calculator.php';
 			include_once 'includes/class-sellerledger-order-status.php';

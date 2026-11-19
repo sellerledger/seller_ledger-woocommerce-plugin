@@ -3,7 +3,9 @@
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 require_once __DIR__ . '/includes/class-sellerledger-transaction-sync.php';
+require_once __DIR__ . '/includes/class-sellerledger-woopayments.php';
 SellerLedger_Transaction_Sync::unschedule();
+SellerLedger_WooPayments::unschedule();
 
 /**
  * Stored data (connection, settings, sync history) is left intact on uninstall
@@ -19,6 +21,7 @@ if ( defined( 'SELLERLEDGER_UNINSTALL' ) && true === SELLERLEDGER_UNINSTALL ) {
 	SellerLedger_Connection::destroy();
 	SellerLedger_Settings::destroy();
 	SellerLedger_Business::uninstall();
+	SellerLedger_WooPayments::forget();
 	delete_option( 'sellerledger-business-name' );
 	delete_option( 'sellerledger-tax-rate-id' );
 }

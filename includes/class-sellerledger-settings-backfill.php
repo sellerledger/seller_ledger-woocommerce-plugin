@@ -15,7 +15,7 @@ class SellerLedger_Settings_Backfill {
 		$start_date   = new DateTime( $this->business->sync_start_date() );
 		$start_date   = $start_date->format( 'Y-m-d' );
 		?>
-		<p><?php esc_html_e( 'Import completed and refunded orders from a date range into Seller Ledger. Your initial history was imported automatically when you connected; use this to re-import a specific range.', 'seller-ledger' ); ?></p>
+		<p><?php esc_html_e( 'Import paid and refunded orders from a date range into Seller Ledger. Your initial history was imported automatically when you connected; use this to re-import a specific range.', 'seller-ledger' ); ?></p>
 		<p>
 			<?php
 			/* translators: %s: earliest importable date */

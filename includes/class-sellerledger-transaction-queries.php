@@ -110,6 +110,16 @@ class SellerLedger_Transaction_Queries {
 		return $wpdb->get_var( $wpdb->prepare( 'SELECT MAX(updated_at) FROM %i WHERE status = %s', $table, 'complete' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}
 
+	/**
+	 * Forget the sync history, used when the store connects to a different connection.
+	 */
+	public static function clear() {
+		global $wpdb;
+
+		$table = SellerLedger_Transaction::table_name();
+		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i', $table ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	}
+
 	public static function reify( $results ) {
 		$records = array();
 

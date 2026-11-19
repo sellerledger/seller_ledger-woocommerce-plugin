@@ -18,7 +18,15 @@ class SellerLedger_Transaction_Sync {
 	public static function init( $integration ) {
 		$instance = new self( $integration );
 		$instance->add_hooks();
-		$instance->initial_backfill();
+
+		// The integration loads before Action Scheduler's data store is ready, and a job
+		// scheduled before then is dropped, so the first backfill waits for it.
+		if ( did_action( 'action_scheduler_init' ) ) {
+			$instance->initial_backfill();
+		} else {
+			add_action( 'action_scheduler_init', array( $instance, 'initial_backfill' ) );
+		}
+
 		return $instance;
 	}
 
@@ -100,13 +108,13 @@ class SellerLedger_Transaction_Sync {
 
 		$orders_and_refunds = wc_get_orders(
 			array(
-				'limit'          => self::BACKFILL_PAGE_SIZE,
-				'offset'         => $offset,
-				'orderby'        => 'date',
-				'order'          => 'ASC',
-				'type'           => array( 'shop_order', 'shop_order_refund' ),
-				'status'         => array( 'completed', 'refunded' ),
-				'date_completed' => $bounded_start_date . '...' . $end_date,
+				'limit'        => self::BACKFILL_PAGE_SIZE,
+				'offset'       => $offset,
+				'orderby'      => 'date',
+				'order'        => 'ASC',
+				'type'         => array( 'shop_order', 'shop_order_refund' ),
+				'status'       => array( 'processing', 'on-hold', 'completed', 'refunded' ),
+				'date_created' => $bounded_start_date . '...' . $end_date,
 			)
 		);
 
@@ -247,12 +255,18 @@ class SellerLedger_Transaction_Sync {
 		}
 
 		foreach ( array_chunk( $ids, self::BATCH_SIZE ) as $chunk ) {
-			as_schedule_single_action( time(), self::PROCESS_BATCH_HOOK, array( 'queue_ids' => $chunk ), self::GROUP_NAME );
+			// Action Scheduler passes a job's arguments positionally, so the list goes in as the first one.
+			as_schedule_single_action( time(), self::PROCESS_BATCH_HOOK, array( $chunk ), self::GROUP_NAME );
 		}
 	}
 
-	public function process_batch( $args ) {
-		$ids = isset( $args['queue_ids'] ) ? array_map( 'intval', (array) $args['queue_ids'] ) : array();
+	/**
+	 * Sync one batch of queued transactions.
+	 *
+	 * @param array $queue_ids Queue row ids.
+	 */
+	public function process_batch( $queue_ids ) {
+		$ids = array_map( 'intval', (array) $queue_ids );
 
 		if ( empty( $ids ) ) {
 			return;
