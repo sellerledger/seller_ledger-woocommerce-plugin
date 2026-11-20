@@ -10,7 +10,7 @@ class SellerLedger_Connection {
 	const CONNECTION_ID_OPTION  = 'sellerledger-connection-id';
 	const CONNECTED_USER_OPTION = 'sellerledger-connected-user-id';
 	const ERROR_TRANSIENT       = 'sellerledger_connection_error';
-	const KIND                  = 'sales_channel';
+	const KIND                  = 'order_management';
 	const PLATFORM              = 'woocommerce';
 
 	public static function init( $token ) {
