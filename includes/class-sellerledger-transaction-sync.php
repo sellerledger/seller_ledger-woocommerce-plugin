@@ -65,7 +65,7 @@ class SellerLedger_Transaction_Sync {
 		add_action( 'woocommerce_trash_order', array( $this, 'delete_order' ), 9, 1 );
 		add_action( 'woocommerce_delete_order', array( $this, 'delete_order' ), 9, 1 );
 		add_action( 'woocommerce_delete_order_refund', array( $this, 'delete_refund' ), 9, 1 );
-		add_action( 'woocommerce_untrash_order', array( $this, 'undelete_order' ), 11 );
+		add_action( 'woocommerce_order_status_changed', array( $this, 'restore_order' ), 10, 2 );
 		add_action( 'woocommerce_order_status_cancelled', array( $this, 'cancel_order' ), 10, 2 );
 	}
 
@@ -222,12 +222,16 @@ class SellerLedger_Transaction_Sync {
 		$refund->delete();
 	}
 
-	public function undelete_order( $id ) {
-		if ( ! $id ) {
-			return;
-		}
-
-		if ( 'shop_order' !== OrderUtil::get_order_type( $id ) ) {
+	/**
+	 * Queue an order restored from the trash. WooCommerce fires woocommerce_untrash_order before
+	 * it puts the status back, so the order still reads as trashed there and cannot sync; the
+	 * status change away from trash that follows is the first point it can.
+	 *
+	 * @param int    $id   Order ID.
+	 * @param string $from The status the order is leaving.
+	 */
+	public function restore_order( $id, $from ) {
+		if ( 'trash' !== $from ) {
 			return;
 		}
 
