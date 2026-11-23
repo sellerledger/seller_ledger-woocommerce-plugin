@@ -86,4 +86,30 @@ class WooPaymentsTest extends TestCase {
 		$this->assertSame( 5400.0, SellerLedger_WooPayments::to_major( 5400, 'jpy' ) );
 		$this->assertSame( 54.0, SellerLedger_WooPayments::to_major( 5400, 'USD' ) );
 	}
+
+	public function test_collects_pages_until_one_comes_back_short() {
+		$pages = array( 1 => array( 'a', 'b' ), 2 => array( 'c' ) );
+
+		$rows = SellerLedger_WooPayments::collect_pages(
+			function ( $page ) use ( $pages ) {
+				return $pages[ $page ];
+			},
+			2
+		);
+
+		$this->assertSame( array( 'a', 'b', 'c' ), $rows );
+	}
+
+	public function test_collects_nothing_when_a_later_page_fails() {
+		$pages = array( 1 => array( 'a', 'b' ), 2 => null );
+
+		$rows = SellerLedger_WooPayments::collect_pages(
+			function ( $page ) use ( $pages ) {
+				return $pages[ $page ];
+			},
+			2
+		);
+
+		$this->assertNull( $rows );
+	}
 }

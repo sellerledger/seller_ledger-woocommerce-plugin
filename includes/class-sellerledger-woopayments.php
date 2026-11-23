@@ -152,7 +152,7 @@ class SellerLedger_WooPayments {
 		$client = SellerLedger_Integration::api_client( $this->integration->token->get() );
 		$sent   = (array) get_option( self::SENT_OPTION, array() );
 
-		foreach ( $this->recent_payouts() as $payout ) {
+		foreach ( $this->recent_payouts() ?? array() as $payout ) {
 			$status = (string) ( $payout['status'] ?? '' );
 			$id     = (string) ( $payout['id'] ?? '' );
 
@@ -166,12 +166,17 @@ class SellerLedger_WooPayments {
 				continue;
 			}
 
+			$found = $this->payout_transactions( $id );
+			if ( null === $found ) {
+				continue;
+			}
+
 			$currency     = strtoupper( (string) ( $payout['currency'] ?? '' ) );
 			$transactions = array_map(
 				function ( $transaction ) use ( $currency ) {
 					return self::map_transaction( $transaction, $currency );
 				},
-				$this->payout_transactions( $id )
+				$found
 			);
 
 			try {
@@ -283,21 +288,48 @@ class SellerLedger_WooPayments {
 		);
 	}
 
+	/**
+	 * Every transaction in a payout, or null when any page of them could not be read, so the
+	 * payout is left unsent and tried again on the next sync rather than sent short.
+	 *
+	 * @param string $payout_id WooPayments payout id.
+	 * @return array|null
+	 */
 	private function payout_transactions( $payout_id ) {
+		return self::collect_pages(
+			function ( $page ) use ( $payout_id ) {
+				return $this->rest_get(
+					'/wc/v3/payments/reports/transactions',
+					array(
+						'deposit_id' => $payout_id,
+						'page'       => $page,
+						'per_page'   => self::TRANSACTION_PAGE_SIZE,
+					)
+				);
+			},
+			self::TRANSACTION_PAGE_SIZE
+		);
+	}
+
+	/**
+	 * Read pages until one comes back short.
+	 *
+	 * @param callable $fetch     Takes a page number, returns that page's rows or null on failure.
+	 * @param int      $page_size Rows in a full page.
+	 * @return array|null Every row, or null when any page failed.
+	 */
+	public static function collect_pages( $fetch, $page_size ) {
 		$all  = array();
 		$page = 1;
 
 		do {
-			$batch = $this->rest_get(
-				'/wc/v3/payments/reports/transactions',
-				array(
-					'deposit_id' => $payout_id,
-					'page'       => $page,
-					'per_page'   => self::TRANSACTION_PAGE_SIZE,
-				)
-			);
-			$all   = array_merge( $all, $batch );
-			$more  = count( $batch ) >= self::TRANSACTION_PAGE_SIZE;
+			$batch = $fetch( $page );
+			if ( null === $batch ) {
+				return null;
+			}
+
+			$all  = array_merge( $all, $batch );
+			$more = count( $batch ) >= $page_size;
 			++$page;
 		} while ( $more );
 
@@ -311,7 +343,7 @@ class SellerLedger_WooPayments {
 
 		if ( $response->is_error() ) {
 			SellerLedger_Logger::error( 'WooPayments request failed: ' . $route, array( 'status' => $response->get_status() ) );
-			return array();
+			return null;
 		}
 
 		$data = $response->get_data();
